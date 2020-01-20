@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>数据源管理</title>
+    <#include "${rc.contextPath}/framework/importFile.html"/>
+</head>
+<style>
+    html,body{
+        height: 100%;
+    }
+</style>
+<body>
+<div class="container-fluid" style="height: 100%;padding: 5px 5px 15px 5px;">
+    <div class="row" style="height: 100%;">
+        <div class="col-md-12" style="height: 100%;">
+            <div class="panel panel-default" style="box-shadow: 0 2px 4px rgba(0, 0, 0, .2);border-radius: 10px;height: 100%;margin-right: 5px;">
+                <div class="panel-heading">
+                    Java代码编译器
+                    <div class="heading-btn-group">
+                        <!--<button class="btn btn-green btn-sm" onclick="refreshDataSource()">刷新</button>-->
+                        <span id="compiler_btn" class="btn btn-green btn-sm glyphicon glyphicon-sort-by-order "> 编译</span>
+                        <span id="start_btn" class="btn btn-green btn-sm glyphicon glyphicon-play "> 运行</span>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <div class="form-group col-md-12">
+                        <textarea id="java_code" class="form-control" rows="10" ></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#compiler_btn').click(function () {
+            compilerJavaCode();
+        })
+        $('#start_btn').click(function () {
+            runJavaCode();
+        })
+
+    });
+
+    function runJavaCode() {
+        var url = compileUrl('${rc.contextPath}/javacode/runJavaCode');
+        var data = {};
+        $.ajax({
+            type: 'post',
+            async: false,
+            url: url,
+            data: data,
+            dataType: 'json',
+            contentType: 'application/x-www-form-urlencoded;charset=UTF-8',
+            success: function (data) {
+                if (!data.success) {
+                    layer.alert(data.errorMsg, {
+                        shade: 0
+                    });
+                } else {
+                    var value = data.result.result;
+                    var isJson = true;
+                    try {
+                        value = JSON.parse(value);
+                    } catch (err) {
+                        isJson = false;
+                    }
+                    var html;
+                    if (isJson) {
+                        html = '<pre id="result_json" style="height: 440px;text-align: left;">' + JSON.stringify(value, null, 2) + '</pre>';
+                    } else {
+                        html = '<pre id="result_json" style="height: 440px;text-align: left;">' + value + '</pre>';
+                    }
+                    layer.open({
+                        type: 1,
+                        title: '运行返回结果',
+                        content: html,
+                        area: ['800px', '500px'],
+                        shade: 0.01,
+                        maxmin: false,
+                        success: function (layero, index) {
+                        }
+                    })
+                }
+            },
+            error: function (XMLHttpRequest) {
+                layer.alert(XMLHttpRequest.responseText, {
+                    shade: 0
+                });
+            }
+        });
+    }
+
+    function compilerJavaCode() {
+        layer.confirm('是否要编译该Java代码？', function () {
+            var url = compileUrl('${rc.contextPath}/javacode/compilerJavaCode');
+            var para = {
+                java_code: $('#java_code').val()
+            };
+            $.ajax({
+                type: 'post',
+                async: false,
+                url: url,
+                data: JSON.stringify(para),
+                dataType: 'json',
+                contentType: 'application/json;charset=UTF-8;',
+                //contentType: 'application/x-www-form-urlencoded;charset=UTF-8',
+                success: function (data) {
+                    if (!data.success) {
+                        layer.alert(data.errorMsg, {
+                            shade: 0
+                        });
+                    } else {
+
+                        layer.msg('编译成功');
+                    }
+                },
+                error: function (XMLHttpRequest) {
+                    layer.alert(XMLHttpRequest.responseText, {
+                        shade: 0
+                    });
+                }
+            });
+        })
+    }
+    function compilerScheduled() {
+        layer.confirm('是否要编译该定时任务？', function () {
+            var url = compileUrl('${rc.contextPath}/javacode/compilerScheduled');
+            var para = {
+                java_code: '1'
+            };
+            $.ajax({
+                type: 'post',
+                async: false,
+                url: url,
+                data: JSON.stringify(para),
+                dataType: 'json',
+                contentType: 'application/json;charset=UTF-8;',
+                //contentType: 'application/x-www-form-urlencoded;charset=UTF-8',
+                success: function (data) {
+                    if (!data.success) {
+                        layer.alert(data.errorMsg, {
+                            shade: 0
+                        });
+                    } else {
+
+                        layer.msg('编译成功');
+                    }
+                },
+                error: function (XMLHttpRequest) {
+                    layer.alert(XMLHttpRequest.responseText, {
+                        shade: 0
+                    });
+                }
+            });
+        })
+    }
+
+
+</script>
+</html>

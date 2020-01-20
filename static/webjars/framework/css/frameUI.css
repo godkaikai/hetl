@@ -1,0 +1,425 @@
+body {
+	font-family: "microsoft yahei";
+}
+.body-color{
+	background-color: #e8e8ec;
+}
+/*覆盖或扩充bootstrap button样式 --start*/
+.btn-green {
+	color: #fff;
+	background-color: #0B9284;
+	border: 0rem;
+	margin-left: 5px;
+}
+
+.btn-green:active {
+	color: #fff;
+	background-color: #0B9284;
+	border: 0px;
+	outline: 0;
+}
+
+.btn-green:active:focus {
+	color: #fff;
+	background-color: #0B9284;
+	border: 0px;
+	outline: 0;
+}
+
+.btn-green:hover {
+	color: #fff;
+	background-color: #0B9284;
+	border: 0px;
+}
+
+.btn-green:focus {
+	color: #fff;
+	background-color: #0B9284;
+	border: 0px;
+	outline: 0;
+}
+.btn-green-light{
+	border: 1px solid #0b9284;
+	color: #0b9284 !important;
+	background:#fff;
+}
+.btn-min{
+	padding: 2px 5px;
+	line-height:1.5;
+	font-size: 12px;
+	border-radius:3px;
+}
+/*覆盖或扩充bootstrap button样式 --end*/
+
+
+
+/*框架 input 全局设置 --start*/
+input[type=checkbox] {
+	display: inline-block;
+	vertical-align: middle;
+	width: 20px;
+	height: 20px;
+	margin-left: 5px;
+	margin-top: 5px;
+	-webkit-appearance: none;
+	background-color: transparent;
+	border: 0;
+	outline: 0 !important;
+	line-height: 20px;
+	color: #d8d8d8;
+}
+
+input[type=checkbox]:after {
+	content: "";
+	display: block;
+	width: 12px;
+	height: 12px;
+	text-align: center;
+	line-height: 14px;
+	font-size: 16px;
+	border: 1px solid #D5DBE6;
+	border-radius: 2px;
+	background-color: #fff;
+}
+
+input[type=checkbox]:checked:after {
+	width: 14px;
+	height: 14px;
+	border: 0px;
+	background: url(../images/icon_quanxuan.png) no-repeat 0px 0px;
+	-webkit-background-size: cover;
+	-moz-background-size: cover;
+	-o-background-size: cover;
+}
+
+
+input[type=radio] {
+	display: inline-block;
+	vertical-align: middle;
+	width: 20px;
+	height: 20px;
+	margin-left: 5px;
+	-webkit-appearance: none;
+	background-color: transparent;
+	border: 0;
+	outline: 0 !important;
+	line-height: 20px;
+	color: #d8d8d8;
+}
+
+input[type=radio]:after {
+	content: "";
+	display: block;
+	width: 13px;
+	height: 13px;
+	text-align: center;
+	line-height: 14px;
+	font-size: 16px;
+	border: 1px solid #D5DBE6;
+	border-radius: 50%;
+	background-color: #fff;
+}
+
+
+input[type=radio]:checked:after {
+	width: 13px;
+	height: 13px;
+	border: 0px;
+	background: url(../images/icon_danxuan.png) no-repeat 0px 0px;
+	-webkit-background-size: cover;
+	-moz-background-size: cover;
+	-o-background-size: cover;
+}
+/*框架 input 全局设置 --end*/
+
+.logo-lg img {
+	float: left;
+	margin-top: 8px;
+	margin-left: 10px;
+	height: 30px;
+	width: 27px;
+}
+
+.logo-mini img {
+	margin-top: 8px;
+	height: 30px;
+	width: 27px;
+}
+
+.log-text {
+	padding-left: 5px;
+	padding-top: 5px;
+	letter-spacing: 1px;
+	float: left;
+	font-size: 15px;
+}
+.a-default{
+	text-decoration: none;
+	color: #0B9284;
+}
+.a-default:hover {
+	text-shadow: 0 0 10px #0B9284;
+}
+.panel-heading{
+	color: #0b9284;
+	background-color:#FFFFFF !important;
+	font-size: 2.2vh;
+	line-height: 6.9vh;
+	padding:0 2.4vw 0 1.5vw;
+	border-bottom: 1px solid #efefef;
+}
+
+.getmore{
+	font-size: 1.5vh;
+	color: #999999;
+	float: right;
+}
+.panel-body canvas{height: 100%; width: 100%;}
+.overhidden{
+	overflow: hidden;
+}
+.downloadlist{
+	list-style:none;
+	margin: 0;
+	padding: 0;
+	margin-top: 0.6vh;
+	padding-left: 2.9vw;
+	padding-right: 2.4vw;
+	width: 100%;
+}
+.downloadlist>li{
+	line-height: 4.3vh;
+	font-size: 1.5vh;
+	position: relative;
+}
+.downloadlist>li:before {
+	content: '';
+	background: url(../../../项目/医疗保健数据资源平台/img/icon_file.png) no-repeat right;
+	background-size: auto 1.7vh;
+	position: absolute;
+	width: 1.7vh;
+	height: 1.7vh;
+	top:1.3vh;
+	left: -2.3vh;
+}
+.list_title{
+	text-decoration: none;
+	color: #333333;
+}
+.list_title:hover{
+	text-decoration: underline;
+	color: #0b9284;
+}
+.click_download{
+	float: right;
+	text-decoration: underline;
+	color: #2c87f0;
+}
+.click_download:hover{
+	color: #2c87f0;
+}
+.havealook{
+	float: right;
+	text-decoration: underline;
+	color: #eca42a;
+	margin-right: 2.6vw;
+}
+.havealook:hover{
+	color: #eca42a;
+}
+.layui-layer-iframe{
+	overflow-y: hidden;
+}
+
+
+
+/* 覆盖bootstrap tab样式 --start */
+.nav-tabs{
+	border: none;
+}
+
+.nav-tabs>li>a{
+	margin-right:0;
+	line-height:10px;
+	background-color: #739fa5;
+	color: #fff;
+	border: none;
+}
+.nav>li>a:focus, .nav>li>a:hover{
+	background-color: #739fa5;
+}
+.nav-tabs>li.active>a, .nav-tabs>li.active>a:focus, .nav-tabs>li.active>a:hover{
+	border: none;
+	background-color: #05bbac;
+	color: #fff;
+	box-shadow: 0 0 10px #999999;
+}
+.nav-tabs>li>a:hover{
+	border: none;
+}
+.tab-content{
+	background: #f6f7f9;
+	height: auto;
+	border-radius: 0 5px 5px 5px;
+	width: 100%;
+}
+/* 覆盖bootstrap tab样式 --end */
+
+
+
+/* 覆盖bootstrap panel样式 --start */
+.panel,.panel-heading,.panel-body{
+	border-radius:8px;
+}
+.panel{
+	border:none;
+	margin: 0 15px 15px 0;
+}
+.panel-heading {
+	font-size: 16px;
+	color: #0b9284 !important;
+	line-height: 35px;
+	padding: 0;
+	padding-left: 20px;
+	border-bottom: none;
+}
+/*panel header中button样式*/
+.panel-heading .heading-btn-group{
+	float:right;
+	margin-right:15px;
+}
+/* 覆盖bootstrap panel样式 --end */
+
+
+
+/* 覆盖bootstrap form 及中项样式 --start */
+.form-horizontal .form-group{
+    margin-right: 0px !important;
+    margin-left: 0px !important;
+}
+.form-control {
+	height: 28px;
+}
+.form-control:focus {
+	border: 2px solid #0B9284;
+	outline: 0;
+	-webkit-box-shadow: none;
+	box-shadow: none;
+}
+/* from.? */
+.select2-container {
+	/*width: 100% !important;*/
+	color: #666;
+}
+.select2{
+	width: 100% !important;
+}
+.control-label{
+	line-height: 14px !important;
+	color: #666666;
+	font-weight: 400;
+	padding-right: 10px !important;
+	padding-top: 7px;
+	text-align: right;
+}
+#layui-laydate2 .layui-laydate-header {
+}
+/* 覆盖bootstrap form 及中项样式 --end */
+
+
+
+/* 覆盖栅格布局 --start */
+.container-fluid{
+	padding-top:15px;
+	padding-bottom:15px;
+	background-color:#F5F5F5;
+	padding-right: 0 !important;
+	min-height:100vh;
+}
+.row{
+	margin:0;
+}
+.col-xs-1, .col-sm-1, .col-md-1, .col-lg-1, .col-xs-2, .col-sm-2, .col-md-2, .col-lg-2, .col-xs-3, .col-sm-3, .col-md-3, .col-lg-3, .col-xs-4, .col-sm-4, .col-md-4, .col-lg-4, .col-xs-5, .col-sm-5, .col-md-5, .col-lg-5, .col-xs-6, .col-sm-6, .col-md-6, .col-lg-6, .col-xs-7, .col-sm-7, .col-md-7, .col-lg-7, .col-xs-8, .col-sm-8, .col-md-8, .col-lg-8, .col-xs-9, .col-sm-9, .col-md-9, .col-lg-9, .col-xs-10, .col-sm-10, .col-md-10, .col-lg-10, .col-xs-11, .col-sm-11, .col-md-11, .col-lg-11, .col-xs-12, .col-sm-12, .col-md-12, .col-lg-12 {
+	padding-right: 0;
+	padding-left: 0;
+}
+/* 覆盖栅格布局 --end */
+
+
+/* bs-table --start*/
+.table td,.table th,.table,.table tr,.table thead,.fixed-table-container{
+	border:none !important;
+}
+.table > tbody > tr:nth-of-type(odd){
+	background:#FAFAFA !important;}
+.table > tbody > tr:hover {
+	background-color: #f6f8fa !important;
+}
+.table thead th{font-size: 14px !important;color: #000 !important;font-weight: normal !important;}
+.table tr td{font-size: 14px !important;color: #676668;font-weight: normal !important;}
+
+/* table.toolbar */
+.fixed-table-toolbar .bars, .fixed-table-toolbar .search, .fixed-table-toolbar .columns{
+	position: relative;
+	margin-top: 0px;
+	margin-bottom: 0px;
+	line-height: 0px;
+}
+/* bs-table --end*/
+
+/* table-tips */
+.table-tips {
+    table-layout: fixed;
+}
+
+.table-tips td {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+/* table-tips */
+
+/* data-format */
+.number-format{
+    text-align:right;
+}
+/* data-format */
+
+
+/*进度条*/
+
+.progress-bar{
+	background-color: #0B9284;
+	border-radius: 10px;
+	line-height: 15px;
+	min-width: 10%;
+}
+.progress{
+	border-radius: 10px;
+	float: left;
+	margin-bottom: 0px;
+	height: 15px;
+	width: 90%;
+}
+.progress-text{
+	display: inline;
+	float: left;
+	margin-left: 3px;
+}
+.progress-div{
+	height: 20px;
+	padding: 2px;
+	font-size: 12px;
+	line-height: 15px;
+	color: #9b9b9b;
+}
+
+/*进度条*/
+
+
+/*adminLTE左侧菜单选中状态*/
+.curriframe{
+	color: #0B9284 !important;
+	font-weight: 600 !important;
+}
+/*adminLTE左侧菜单选中状态*/

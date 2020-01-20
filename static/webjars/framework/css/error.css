@@ -1,0 +1,26 @@
+@charset "UTF-8";
+
+.error-warpper {
+	width: 100%;
+	text-align: center;
+}
+
+.error-content {
+	margin: 0 auto;
+	overflow: auto;
+	width: 60%;
+	height: 250px;
+	border: #b6bac9 solid 1px;
+	border-radius: 5px;
+	text-align: left;
+}
+
+.error-genl {
+	color: red;
+	padding: 10px;
+}
+
+.error-detl {
+	font-size: 12px;
+	padding-left: 20px;
+}

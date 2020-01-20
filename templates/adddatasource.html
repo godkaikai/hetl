@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='layui/css/layui.css') }}">
+    <script src="{{ url_for('static', filename='layui/layui.js') }}"></script>
+    <style>
+        .layui-card {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .2);
+            border-radius: 10px;
+            margin: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="layui-card">
+    {#<div class="layui-card-header">
+        <h3>新增数据源信息</h3>
+    </div>#}
+    <div class="layui-card-body">
+
+
+        <fieldset class="layui-elem-field">
+            <legend>新增数据源信息</legend>
+            <div class="layui-field-box">
+                <form class="layui-form layui-form-pane" action="">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">名称</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="datasource_name" required lay-verify="required"
+                                   placeholder="请输入唯一标识"
+                                   autocomplete="off" class="layui-input">
+                        </div>
+                        <!--<div class="layui-form-mid layui-word-aux">唯一标识</div>-->
+                        <label class="layui-form-label">标题</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="datasource_title" required lay-verify="required"
+                                   placeholder="请输入中文标题"
+                                   autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">用途</label>
+                        <div class="layui-input-block">
+                            <input type="radio" name="datasource_purpose" value="1" title="目标数据源">
+                            <input type="radio" name="datasource_purpose" value="0" title="源数据源" checked>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">类型</label>
+                        <div class="layui-input-inline">
+                            <select name="datasource_type" lay-verify="required" lay-filter="datasource_type">
+                                <option value=""></option>
+                                <option value="ORACLE">ORACLE</option>
+                                <option value="MYSQL">MYSQL</option>
+                                <option value="POSTGRE">POSTGRE</option>
+                                <option value="SQLSERVER">SQLSERVER</option>
+                                <option value="SQLLITE">SQLLITE</option>
+                            </select>
+                        </div>
+                        <label class="layui-form-label">驱动</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="datasource_driver" required readonly lay-verify="required"
+                                   placeholder="数据库驱动" autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">URL地址</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="datasource_ip" required lay-verify="required" placeholder="0.0.0.0"
+                                   autocomplete="off" class="layui-input">
+                        </div>
+                        <div class="layui-form-mid">:</div>
+                        <div class="layui-input-inline">
+                            <input type="text" name="datasource_port" required lay-verify="required" placeholder="0000"
+                                   autocomplete="off" class="layui-input">
+                        </div>
+                        <div class="layui-form-mid">/</div>
+                        <div class="layui-input-inline">
+                            <input type="text" name="datasource_dbname" required lay-verify="required"
+                                   placeholder="dbname"
+                                   autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">用户名</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="datasource_username" required lay-verify="required"
+                                   placeholder="请输入用户名"
+                                   autocomplete="off" class="layui-input">
+                        </div>
+                        <label class="layui-form-label">密码框</label>
+                        <div class="layui-input-inline">
+                            <input type="password" name="datasource_password" required lay-verify="required"
+                                   placeholder="请输入密码"
+                                   autocomplete="off" class="layui-input">
+                        </div>
+                        <div class="layui-input-inline">
+                            <button type="button" class="layui-btn layui-btn-primary" lay-filter="testconn">测试</button>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">是否加密</label>
+                        <div class="layui-input-inline">
+                            <input type="checkbox" name="datasource_enc" lay-skin="switch" lay-text="是|否" value="0">
+                        </div>
+                        <label class="layui-form-label">是否启用</label>
+                        <div class="layui-input-inline">
+                            <input type="checkbox" name="state" lay-skin="switch" checked lay-text="是|否" value="1">
+                        </div>
+                    </div>
+                    <div class="layui-form-item layui-form-text">
+                        <label class="layui-form-label">备注</label>
+                        <div class="layui-input-block">
+                            <textarea name="notes" placeholder="请输入内容" class="layui-textarea"></textarea>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <div class="layui-input-block">
+                            <button class="layui-btn" lay-submit lay-filter="datasourceform">立即提交</button>
+                            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </fieldset>
+    </div>
+</div>
+<script>
+    layui.use(['jquery', 'form'], function () {
+        var $ = layui.$,
+            form = layui.form;
+        form.on('submit(datasourceform)', function (data) {
+            $.ajax({
+                url: "{{ url_for('main.savedatasource') }}",
+                type: 'post',
+                data: data.field,
+                contentType: "application/x-www-form-urlencoded;charset=UTF-8",
+                dataType: 'json',
+                success: function (res) {
+                    if (res.success) {
+                        layer.msg(res.msg);
+                        parent.$('iframe[src="/datasource"]').contents().find(".layui-laypage-btn")[0].click();
+                    } else {
+                        layer.msg(res.msg);
+                    }
+                }
+            });
+            return false;
+        });
+        form.on('button(testconn)', function (data) {
+            $.ajax({
+                url: "{{ url_for('main.testdatasource') }}",
+                type: 'post',
+                data: data.field,
+                contentType: "application/x-www-form-urlencoded;charset=UTF-8",
+                dataType: 'json',
+                success: function (res) {
+                    layer.msg(res.msg);
+                }
+            });
+            return false;
+        });
+
+        form.on('select(datasource_type)', function (data) {
+            var type = data.value;
+            if (type == 'ORACLE') {
+                $('input[name="datasource_driver"]').val('oracle+cx_oracle');
+            } else if (type == 'MYSQL') {
+                $('input[name="datasource_driver"]').val('mysql+pymysql');
+            } else if (type == 'POSTGRE') {
+                $('input[name="datasource_driver"]').val('postgresql+pg8000');
+            } else if (type == 'SQLSERVER') {
+                $('input[name="datasource_driver"]').val('mssql+pymssql');
+            } else if (type == 'SQLLITE') {
+                $('input[name="datasource_driver"]').val('sqlite');
+            }
+        });
+        form.on('switch', function (data) {
+            $(data.elem).attr('type', 'hidden').val(this.checked ? 1 : 0);
+        });
+    });
+</script>
+</body>
+</html>

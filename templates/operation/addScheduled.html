@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>添加定时任务</title>
+<#include "${rc.contextPath}/framework/importFile.html"/>
+</head>
+<body>
+	<div class="panel panel-default">
+		<div class="panel-body">
+			<form class="form-horizontal" id="scheduled_form"
+				enctype="multipart/form-data">
+				<div class="form-group">
+					<label class="col-xs-3 control-label required">任务描述</label>
+					<div class="col-xs-9">
+						<input class="form-control" type="text" name="taskdesc"
+							autocomplete="off" >
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label required">任务表达式</label>
+					<div class="col-xs-9">
+						<input class="form-control" type="text" name="taskcron"
+							   autocomplete="off" >
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label required">程序初始化是否启动</label>
+					<div class="col-xs-9">
+						<label class="radio-inline">
+							<input type="radio" name="initstartflag" id="optionsRadios1" value="true" checked> 是
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="initstartflag" id="optionsRadios2"  value="false"> 否
+						</label>
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="pull-right">
+						<span class="btn btn-green btn-sm" onclick="saveScheduled()">保存</span>
+						<span class="btn btn-green btn-sm" onclick="resetScheduled()">清空</span>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+</body>
+<script type="text/javascript">
+	$(document).ready(function() {
+
+	});
+
+	function saveScheduled() {
+		var url = compileUrl('${rc.contextPath}/scheduled/saveTask');
+		var para = $('#scheduled_form').serialize();
+		$.ajax({
+			url : url,
+			data : para,
+			dataType : "json",
+			type : "post",
+			success : function(data) {
+				if (!data.success) {
+					parent.layer.alert(data.errorMsg);
+					return false;
+				} else {
+					parent.refreshScheduled();
+					parent.layer.msg('添加成功');
+					var index = parent.layer.getFrameIndex(window.name);
+					parent.layer.close(index);
+				}
+			},
+			error : function(XMLHttpRequest) {
+				layer.alert(XMLHttpRequest.responseText, {
+					shade : 0
+				});
+				return false;
+			}
+		});
+	}
+
+	function resetScheduled() {
+		$("#scheduled_form").resetForm();
+	}
+</script>
+</html>

@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>任务视图</title>
+    <#include "${rc.contextPath}/framework/importFile.html"/>
+</head>
+<style>
+    html,body{
+        height: 100%;
+    }
+    .panel{
+        margin-right: 9px!important;
+        margin-left: 5px!important;
+    }
+    .form-control-static {
+        line-height: 14px !important;
+    }
+    .form-control {
+        padding: 0px 12px;
+    }
+</style>
+<body>
+<div class="container-fluid" style="height: 100%;padding: 5px 5px 15px 5px;">
+    <div class="row" style="height: 100%;padding-bottom: 7.5px;">
+        <div class="col-md-12" style="height: 100%;">
+            <div class="panel panel-default" style="box-shadow: 0 2px 4px rgba(0, 0, 0, .2);border-radius: 10px;height: 100%;">
+                <div class="panel-heading">
+                    任务视图
+                </div>
+                <div class="panel-body">
+                    <form class="form-horizontal" id="task_form"
+                          enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="task_id" class="col-xs-2 control-label">任务id</label>
+                            <div class="col-xs-2">
+                                <p class="form-control-static" id="task_id" name="task_id"></p>
+                            </div>
+                            <label for="task_name" class="col-xs-2 control-label">任务名</label>
+                            <div class="col-xs-2">
+                                <p class="form-control-static" id="task_name" name="task_name" ></p>
+                            </div>
+                            <label for="state" class="col-xs-2 control-label">执行结果</label>
+                            <div class="col-xs-2">
+                                <p class="form-control-static" id="state" name="state" ></p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="starttime" class="col-xs-2 control-label">开始时间</label>
+                            <div class="col-xs-2">
+                                <p class="form-control-static" id="starttime" name="starttime"></p>
+                            </div>
+                            <label for="endtime" class="col-xs-2 control-label">结束时间</label>
+                            <div class="col-xs-2">
+                                <p class="form-control-static" id="endtime" name="endtime" ></p>
+                            </div>
+                            <label for="times" class="col-xs-2 control-label">总耗时</label>
+                            <div class="col-xs-2">
+                                <p class="form-control-static" id="times" name="times" ></p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="row_count" class="col-xs-2 control-label">总抽取记录数</label>
+                            <div class="col-xs-2">
+                                <p class="form-control-static" id="row_count" name="row_count"></p>
+                            </div>
+                            <label for="efficiency" class="col-xs-2 control-label">抽取效率</label>
+                            <div class="col-xs-2">
+                                <p class="form-control-static" id="efficiency" name="efficiency" ></p>
+                            </div>
+                            <label for="exception_tag" class="col-xs-2 control-label">异常标志</label>
+                            <div class="col-xs-2">
+                                <p class="form-control-static" id="exception_tag" name="exception_tag" ></p>
+                            </div>
+                        </div>
+                    </form>
+                <!--</div>
+            </div>
+        </div>
+    </div>
+    <div class="row" style="height: 70%;padding-top: 7.5px;">
+        <div class="col-md-12" style="height: 100%;">
+            <div class="panel panel-default" style="box-shadow: 0 2px 4px rgba(0, 0, 0, .2);border-radius: 10px;height: 100%;">
+                <div class="panel-heading">
+                    子任务列表
+                </div>
+                <div class="panel-body">-->
+                    <table class="table table-striped table-tips table-tips-green" id="task_item_table">
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(function () {
+        var task_id = '${task_id!""}',
+            task_name = '${task_name!""}',
+            state = '${state!""}',
+            exception_tag = '${exception_tag!""}',
+            starttime = '${(starttime?string("yyyy-MM-dd hh:mm:ss"))!}',
+            endtime = '${(endtime?string("yyyy-MM-dd hh:mm:ss"))!}';
+        task_id = parseInt(task_id.replace(/,/g,''))
+        $('#task_id').text(task_id);
+        $('#task_name').text(task_name);
+        $('#state').text(state);
+        $('#exception_tag').text(exception_tag);
+        $('#starttime').text(starttime);
+        $('#endtime').text(endtime);
+        var startDate = new Date(starttime);
+        var endDate = new Date(endtime);
+        var times = (endDate.getTime() - startDate.getTime())/1000;
+        $('#times').text(times+'s');
+        getRowCount(task_id,times);
+        refreshTaskItemTable(task_id,compileUrl('${rc.contextPath}/ETLTask/selectTaskItem'));
+    })
+
+    function getRowCount(id,times) {
+        var url = compileUrl('${rc.contextPath}/ETLTask/selectTaskItem');
+        var para = {
+            task_id: id
+        };
+        $.ajax({
+            url : url,
+            data : para,
+            dataType : "json",
+            type : "post",
+            success : function(data) {
+                if (!data.success) {
+                    layer.alert(data.errorMsg);
+                    return false;
+                } else {
+                    var count=0;
+                    for(var i in data.data.data){
+                        count += data.data.data[i].row_count;
+                    }
+                    $('#row_count').text(count);
+                    var efficiency = (count/times).toFixed(2);
+                    $('#efficiency').text(efficiency+'条/s');
+                }
+            },
+            error : function(XMLHttpRequest) {
+                layer.alert(XMLHttpRequest.responseText, {
+                    shade : 0
+                });
+                return false;
+            }
+        });
+    }
+    function refreshTaskItemTable(id,url) {
+        if(typeof id=='undefined'){
+            layer.alert('请指定task');
+            return;
+        }
+        var para = {
+            task_id: id
+        };
+        var panel_height = $('#task_item_table').closest('.panel').height();
+        var panel_head = $('#task_item_table').closest('.panel').find('.panel-heading').height();
+        var form_height = $('#task_form').height();
+        var panel_body = panel_height - panel_head - form_height;
+        var table_hight = panel_body - 30;
+        $('#task_item_table').bootstrapTable('destroy');
+        $('#task_item_table').bootstrapTable({
+            url : url,
+            method : 'post',
+            contentType : 'application/x-www-form-urlencoded',
+            cache : false,
+            pagination : true,
+            sortable : true,
+            toolbar: '#task_item_table .toolbar:first', //工具按钮用哪个容器
+            queryParams : para,
+            sidePagination : 'client',
+            pageNumber : 1,
+            pageSize : 10,
+            search: true,
+            singleSelect: true,
+            minimumCountColumns : 2,
+            clickToSelect : true,
+            uniqueId : 'id',
+            height: table_hight,
+            responseHandler : function(res) {
+                for(var i in res.data.data){
+                    //res.data.data[i].progress = res.data.data[i].insert_count+'/'+res.data.data[i].select_count;
+                    res.data.data[i].progress = res.data.data[i].insert_count;
+                    res.data.data[i].state=res.data.data[i].state==1?'已完成':res.data.data[i].state==2?'正在运行':res.data.data[i].state==3?'失败':'未启动';
+                    res.data.data[i].type=res.data.data[i].type==1?'是':'否';
+                }
+                return res.data;
+            },
+            onPostBody:function () {
+                $('#task_item_table tbody tr').each(function () {
+                    var text = $(this).find('td').eq(7).text();
+                    if(text=='失败'){
+                        $(this).find('td').eq(7).css('color','#d15b47');
+                    }else if(text=='正在运行'){
+                        $(this).find('td').eq(7).css('color','#2062d1');
+                    }else if(text=='已完成'){
+                        $(this).find('td').eq(7).css('color','#0b9284');
+                    }else{
+                    }
+                })
+            },
+            columns : [{
+                field: 'numberid',//可不加
+                title: '序号',//标题  可不加
+                formatter: function (value, row, index) {
+                    return index + 1;
+                },
+                width: 50
+            }, {
+                field : 'id',
+                title : '子任务ID',
+                sortable: true
+            }, {
+                field : 'sql_id',
+                title : 'SQLID',
+                sortable: true
+            }, {
+                field : 'insert_user',
+                title : '目标用户',
+                sortable: true
+            }, {
+                field : 'insert_table',
+                title : '目标表',
+                sortable: true
+            }, {
+                field : 'type',
+                title : '是否传参',
+                sortable: true
+            }, {
+                field : 'progress',
+                title : '目标表记录数',
+                sortable: true
+            }, {
+                field : 'state',
+                title : '执行结果',
+                sortable: true
+            }, {
+                field : 'row_count',
+                title : '总记录数',
+                sortable: true
+            }, {
+                field : 'starttime',
+                title : '开始时间',
+                sortable: true
+            }, {
+                field : 'endtime',
+                title : '结束时间',
+                sortable: true
+            }, {
+                field : 'exception_info',
+                title : '异常信息',
+            }, {
+                field : 'notes',
+                title : '备注',
+                sortable: true
+            }, {
+                field : 'operate',
+                title : '操作',
+                formatter: function (value, row, index) {
+                    var id = row.id;
+                    if(row.state==3){
+                        return [
+                            '<a href="javascript:;" class="a-default" onclick="getTaskItemInfo(\''
+                            + id + '\')" style="margin-right:5px;">查看</a>'+
+                            '<a href="javascript:;" class="a-default" onclick="stopTaskItem(\''
+                            + id + '\')" style="margin-right:5px;">停止</a>'].join('');
+                    }else {
+                        return [
+                            '<a href="javascript:;" class="a-default" onclick="getTaskItemInfo(\''
+                            + id + '\')" style="margin-right:5px;">查看</a>' +
+                            '<a href="javascript:;" class="a-default" onclick="runTaskItem(\''
+                            + id + '\')" style="margin-right:5px;">执行</a>'].join('');
+                    }
+                }
+            }]
+        });
+    }
+
+    function runTaskItem(id) {
+        if(typeof id=='undefined'){
+            layer.alert('请指定子任务');
+            return;
+        }
+        layer.confirm('请选择设置批量抽取条数：<input class="form-control" style="width: 100px;display: inline-block;"  type="number" id="batch_size" name="batch_size" autocomplete="off" value="10000"></br>是否清表<select  class="form-control" style="width: 100px;display: inline-block;" id="truncate" >' +
+            '<option value="0">否</option><option value="1">是</option></select>', {btn: ['快速','普通', '取消'], title: "提示"}, function () {
+            var url = compileUrl('${rc.contextPath}/ETLTask/runTaskItem');
+            var batch_size = $('#batch_size').val();
+            var truncate = $('#truncate').val();
+            layer.closeAll();
+            var para = {
+                id: id,
+                way:3,
+                batch_size:batch_size,
+                truncate:truncate
+            };
+            $.ajax({
+                url: url,
+                data: para,
+                dataType: "json",
+                type: "post",
+                success: function (data) {
+                    if (!data.success) {
+                        layer.alert(data.errorMsg);
+                        return false;
+                    } else {
+                        //layer.msg('抽取完成！');
+                    }
+                },
+                error: function (XMLHttpRequest) {
+                    layer.alert(XMLHttpRequest.responseText, {
+                        shade: 0
+                    });
+                    return false;
+                }
+            })}, function () {
+                var url = compileUrl('${rc.contextPath}/ETLTask/runTaskItem');
+                var batch_size = $('#batch_size').val();
+                var truncate = $('#truncate').val();
+                layer.closeAll();
+                var para = {
+                    id: id,
+                    way:2,
+                    batch_size:batch_size,
+                    truncate:truncate
+                };
+                $.ajax({
+                    url: url,
+                    data: para,
+                    dataType: "json",
+                    type: "post",
+                    success: function (data) {
+                        if (!data.success) {
+                            layer.alert(data.errorMsg);
+                            return false;
+                        } else {
+                            //layer.msg('抽取完成！');
+                        }
+                    },
+                    error: function (XMLHttpRequest) {
+                        layer.alert(XMLHttpRequest.responseText, {
+                            shade: 0
+                        });
+                        return false;
+                    }
+                });
+        });
+    }
+
+    function getTaskItemInfo(id) {
+        var pid = 'TaskItemInfo';
+        parent.$.addtabs.add({
+            'id': pid,
+            'title': '子任务信息',
+            'url': compileUrl('${rc.contextPath}/ETLTask/getTaskInfoPage?id='+id),
+            'refresh': true
+        });
+        parent.setTabs(pid);
+    }
+
+    function stopTaskItem(id) {
+        if (typeof id == 'undefined') {
+            layer.alert('请指定id');
+            return;
+        }
+        layer.confirm('是否要停止该任务？', {btn: ['确认', '取消'], title: "提示"}, function () {
+            var url = compileUrl('${rc.contextPath}/ETLTask/stopTaskItem');
+            var para = {
+                task_id: id
+            };
+            $.ajax({
+                url: url,
+                data: para,
+                dataType: "json",
+                type: "post",
+                success: function (data) {
+                    if (!data.success) {
+                        layer.alert(data.errorMsg);
+                        return false;
+                    } else {
+                        if(data.data.data=='success'){
+                            layer.msg('停止成功');
+                            $('.layui-layer-title').text('抽取进程查询（已停止！）');
+                            refreshRunTaskTable(id);
+                        }else{
+                            layer.msg('停止失败');
+                        }
+                    }
+                }
+            })
+        })
+    }
+</script>
+</body>
+</html>

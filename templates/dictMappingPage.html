@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>字典映射管理</title>
+    <#include "${rc.contextPath}/framework/importFile.html"/>
+</head>
+<style>
+    html,body{
+        height: 100%;
+    }
+</style>
+<body>
+<div class="container-fluid" style="height: 100%;padding: 5px 5px 15px 5px;">
+    <div class="row" style="height: 100%;">
+        <div class="col-md-12" style="height: 100%;">
+            <div class="panel panel-default" style="box-shadow: 0 2px 4px rgba(0, 0, 0, .2);border-radius: 10px;height: 100%;margin-right: 5px;">
+                <div class="panel-heading">
+                    字典映射列表
+                    <!--<div class="heading-btn-group">
+
+                    </div>-->
+                </div>
+                <div class="panel-body">
+                    <div class=" btn-toolbar toolbar" role="toolbar" style="float:left;width: 80%;">
+                        <span id="all_btn" class="btn btn-green btn-sm glyphicon glyphicon-th "> 全部</span>
+                        <span id="add_btn" class="btn btn-green btn-sm glyphicon  glyphicon-cog "> 管理</span>
+                        <label for="source_dict_search" class="control-label col-xs-1 ">源值域标准</label>
+                        <div class="col-xs-2">
+                            <select id="source_dict_search" name="source_dict_search" class="js-example-templating js-states form-control">
+                                <option></option>
+                            </select>
+                        </div>
+                        <label for="target_dict_search" class="control-label col-xs-1 ">目标值域标准</label>
+                        <div class="col-xs-2">
+                            <select id="target_dict_search" name="target_dict_search" class="js-example-templating js-states form-control">
+                                <option></option>
+                            </select>
+                        </div>
+                        <label for="target_dict_version" class="control-label col-xs-1 ">映射版本</label>
+                        <div class="col-xs-1">
+                            <select id="target_dict_version" name="target_dict_version" class="js-example-templating js-states form-control">
+                                <option></option>
+                            </select>
+                        </div>
+                        <span id="refresh_btn" class="btn btn-green btn-sm glyphicon glyphicon-search "> 搜索</span>
+                    </div>
+                    <table class="table table-striped table-tips table-tips-green" id="dictmapping_table">
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script type="text/javascript">
+    $(document).ready(function() {
+        refreshDictSearch();
+        refreshDictMapping();
+        initVersionSelect2();
+        $('#all_btn').click(function () {
+            refreshDictMapping();
+        })
+        $('#add_btn').click(function () {
+            addDictMapping();
+        })
+        $('#refresh_btn').click(function () {
+            searchDictMapping();
+        })
+    });
+    function initVersionSelect2() {
+        var url = compileUrl('${rc.contextPath}/dictmapping/selectMappingVersion');
+        var para = {};
+        $.ajax({
+            url: url,
+            data: para,
+            dataType: "json",
+            type: "post",
+            success: function (data) {
+                if (!data.success) {
+                    layer.alert(data.errorMsg);
+                    return false;
+                } else {
+                    var row = $.map(data.data.data, function (row) {
+                        return {
+                            id: row.version,
+                            text: row.version
+                        };
+                    });
+                    $("#target_dict_version").select2({
+                        placeholder: "-请选择-",
+                        allowClear: true,
+                        data: row
+                    });
+                }
+            }
+        })
+    }
+
+    function refreshDictSearch() {
+        var url = compileUrl('${rc.contextPath}/dictmapping/selectDictStandard');
+        var para = {};
+        $.ajax({
+            url : url,
+            data : para,
+            dataType : "json",
+            type : "post",
+            success : function(data) {
+                if (!data.success) {
+                    layer.alert(data.errorMsg);
+                    return false;
+                } else {
+                    var source_list=[],target_list=[];
+                    for(var i=0;i<data.data.source_dict.length;i++){
+                        source_list.push({ id: data.data.source_dict[i].source_dict, text: data.data.source_dict[i].source_dict });
+                    }
+                    for(var i=0;i<data.data.target_dict.length;i++){
+                        target_list.push({ id: data.data.target_dict[i].target_dict, text: data.data.target_dict[i].target_dict });
+                    }
+                    var $select =$("#target_dict_search");
+                    if($select.data('select2')){
+                        $select.select2('destroy').empty();
+                    }
+                    $("#target_dict_search").select2({
+                        placeholder: "-请选择-",
+                        allowClear: true,
+                        data: target_list
+                    });
+                    $select =$("#source_dict_search");
+                    if($select.data('select2')){
+                        $select.select2('destroy').empty();
+                    }
+                    $("#source_dict_search").select2({
+                        placeholder: "-请选择-",
+                        allowClear: true,
+                        data: source_list
+                    });
+                }
+            },
+            error : function(XMLHttpRequest) {
+                layer.alert(XMLHttpRequest.responseText, {
+                    shade : 0
+                });
+                return false;
+            }
+        });
+    }
+
+    function searchDictMapping() {
+        var target_dict = $('#target_dict_search').val();
+        var source_dict = $('#source_dict_search').val();
+        var version = $("#target_dict_version").val();
+        if(version==''){
+            layer.msg('请指定版本号');
+            return;
+        }
+        var url = compileUrl('${rc.contextPath}/dictmapping/selectDictMapping');
+        if(typeof target_dict=='undefined'&&typeof source_dict=='undefined'){
+            url = compileUrl('${rc.contextPath}/dictmapping/selectDictMappingAll');
+        }
+        var para = {
+            target_dict: target_dict,
+            source_dict: source_dict,
+            version:version
+        };
+        $('#dictmapping_table').bootstrapTable('destroy');
+        var oTable = new dictMappingTable(para);
+        oTable.init(url);
+    }
+    function refreshDictMapping() {
+        var url = compileUrl('${rc.contextPath}/dictmapping/selectDictMappingAll');
+        $('#dictmapping_table').bootstrapTable('destroy');
+        var oTable = new dictMappingTable();
+        oTable.init(url);
+    }
+
+    var dictMappingTable = function(para) {
+        var panel_height = $('#dictmapping_table').closest('.panel').height();
+        var panel_head = $('#dictmapping_table').closest('.panel').find('.panel-heading').height();
+        var panel_body = panel_height - panel_head;
+        var table_hight = panel_body - 30;
+        var oTemplate = new Object();
+        oTemplate.init = function(url) {
+            $('#dictmapping_table').bootstrapTable({
+                url : url,
+                method : 'post',
+                contentType : 'application/x-www-form-urlencoded',
+                cache : false,
+                pagination : true,
+                sortable : true,
+                queryParams : para,
+                sidePagination : 'client',
+                pageNumber : 1,
+                pageSize : 10,
+                pageList : [ 10, 25, 50, 100 ],
+                minimumCountColumns : 2,
+                clickToSelect : true,
+                search: true,
+                height : table_hight,
+                uniqueId : 'id',
+                responseHandler : function(res) {
+                    return  res.data;
+                },
+                columns : [ {
+                    field: 'numberid',//可不加
+                    title: '序号',//标题  可不加
+                    formatter: function (value, row, index) {
+                        return index + 1;
+                    },
+                    width: 50
+                },{
+                    field : 'id',
+                    title : 'id',
+                    sortable: true
+                }, {
+                    field : 'source_code',
+                    title : '源字典CODE',
+                    sortable: true
+                }, {
+                    field : 'source_value',
+                    title : '源字典VALUE',
+                    sortable: true
+                }, {
+                    field : 'source_dict',
+                    title : '源字典标准',
+                    sortable: true
+                },{
+                    field : 'target_code',
+                    title : '目标字典CODE',
+                    sortable: true
+                }, {
+                    field : 'target_value',
+                    title : '目标字典VALUE',
+                    sortable: true
+                }, {
+                    field : 'target_dict',
+                    title : '目标字典标准',
+                    sortable: true
+                }, {
+                    field : 'source_datasource',
+                    title : '源值域数据源',
+                    sortable: true
+                }, {
+                    field : 'source_user',
+                    title : '源值域用户',
+                    sortable: true
+                }, {
+                    field : 'source_table',
+                    title : '源值域表',
+                    sortable: true
+                }, {
+                    field : 'comments',
+                    title : '备注'
+                }
+                /*, {
+                    field : 'operate',
+                    title : '操作',
+                    formatter : function (value, row, index) {
+                        var id = row.id;
+                        return [
+                            '<a href="javascript:;" class="a-default" onclick="editDictMapping(\''
+                            + id + '\')" style="margin-right:5px;">编辑</a>',
+                            '<a href="javascript:;" class="a-default" onclick="removeDictMapping(\''
+                            + id + '\')" style="margin-right:5px;">删除</a>' ].join('');
+                    }
+                } */
+                ]
+            });
+        };
+        return oTemplate;
+    };
+
+    // 添加字典映射
+    function addDictMapping() {
+        var id = 'addDictMapping';
+        parent.$.addtabs.add({
+            'id': id,
+            'title': '管理字典映射',
+            'url': compileUrl('${rc.contextPath}/dictmapping/addDictMappingPage'),
+            'refresh': true
+        });
+        parent.setTabs(id);
+    }
+
+    /*// 删除字典映射
+    function removeDictMapping(id) {
+        layer.confirm('是否要删除该字典映射？', function () {
+            var url = compileUrl('${rc.contextPath}/dictmapping/deleteDictMapping');
+            var data = {
+                id: id
+            };
+            $.ajax({
+                type: 'post',
+                async: false,
+                url: url,
+                data: data,
+                dataType: 'json',
+                contentType: 'application/x-www-form-urlencoded;charset=UTF-8',
+                success: function (data) {
+                    if (!data.success) {
+                        layer.alert(data.errorMsg, {
+                            shade: 0
+                        });
+                    } else {
+                        layer.msg('删除成功');
+                        refreshDictMapping();
+                    }
+                },
+                error: function (XMLHttpRequest) {
+                    layer.alert(XMLHttpRequest.responseText, {
+                        shade: 0
+                    });
+                }
+            });
+        })
+    }
+
+    // 编辑字典映射
+    function editDictMapping(id) {
+
+    }*/
+</script>
+</html>

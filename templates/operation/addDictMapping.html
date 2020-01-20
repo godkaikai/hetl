@@ -1,0 +1,1843 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>新增值域映射</title>
+    <#include "${rc.contextPath}/framework/importFile.html"/>
+</head>
+<style>
+    html,body{
+        height: 100%;
+    }
+    .dict-save{
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translateY(-50%) translateX(-50%);
+        height: 40px;
+        width: 40px;
+        background-color: #8dc7c3;
+        font-size: 20px;
+        line-height: 30px;
+        text-align: center;
+        border-radius: 40px;
+        color: #fff;
+        border: 5px solid #ddd;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, .2);
+    }
+
+    .dict-save:hover{
+        background-color: #5c9c98f7;
+        height: 50px;
+        width: 50px;
+        font-size: 30px;
+        line-height: 40px;
+        border-radius: 50px;
+        border: 6px solid #ddd;
+    }
+    .label-checked{
+        padding: 1px 10px;
+        font-size: 12px;
+        line-height: 1.5;
+        border-radius: 3px;
+        display: inline-block;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: middle;
+        touch-action: manipulation;
+        cursor: pointer;
+        margin-bottom: 0;
+        color: #fff!important;
+        background-color: #0B9284;
+        border: 0px;
+        text-decoration: none!important;
+    }
+    .panel{
+        margin-right: 9px!important;
+        margin-left: 5px!important;
+    }
+
+    .input-group {
+        border-radius: 4px 0 0 4px;
+    }
+
+    .label-group {
+        color: #fff;
+        background-color: #0B9284;
+        border: 0rem;
+        margin-left: -5px !important;
+        vertical-align: top;
+        border-radius: 0 4px 4px 0;
+        margin-right: 5px;
+    }
+
+    .select2-right-radius-zero .select2-container--default .select2-selection--single {
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 4px 0 0 4px;
+    }
+</style>
+<body>
+<div class="container-fluid" style="height: 100%;padding: 5px 5px 15px 5px;overflow-y: hidden;">
+    <div class="row" style="height: 50%;padding-bottom: 7.5px;">
+        <div class="col-md-12" style="height: 100%;">
+            <div class="panel panel-default" id="dictmapping_panel" style="box-shadow: 0 2px 4px rgba(0, 0, 0, .2);border-radius: 10px;height: 100%;">
+                <div class="panel-heading">
+                    值域映射列表
+                </div>
+                <div class="panel-body">
+                    <div class=" btn-toolbar toolbar" role="toolbar" style="float:left;width: 80%;">
+                        <span id="all_btn" class="btn btn-green btn-sm glyphicon glyphicon-th "> 全部</span>
+                        <span id="add_btn" class="btn btn-green btn-sm glyphicon glyphicon-plus "> 添加</span>
+                        <span id="automapping_btn" class="btn btn-green btn-sm glyphicon glyphicon-indent-right "> AI映射</span>
+                        <span id="refresh_btn" class="btn btn-green btn-sm glyphicon glyphicon-refresh "> 刷新</span>
+                        <label for="source_dict_search" class="control-label col-xs-1 ">源值域标准</label>
+                        <div class="col-xs-2">
+                            <select id="source_dict_search" name="source_dict_search" class="js-example-templating js-states form-control">
+                                <option></option>
+                            </select>
+                        </div>
+                        <label for="target_dict_search" class="control-label col-xs-1 ">目标值域标准</label>
+                        <div class="col-xs-2">
+                            <select id="target_dict_search" name="target_dict_search" class="js-example-templating js-states form-control">
+                                <option></option>
+                            </select>
+                        </div>
+                        <label for="target_dict_version" class="control-label col-xs-1 ">映射版本</label>
+                        <div class="col-xs-1">
+                            <select id="target_dict_version" name="target_dict_version" class="js-example-templating js-states form-control">
+                                <option></option>
+                            </select>
+                        </div>
+                        <span id="add_version" class="btn btn-green btn-sm glyphicon glyphicon-plus "></span>
+                    </div>
+                    <table class="table table-striped table-tips table-tips-green" id="dictmapping_table">
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row" style="height: 50%;padding-top: 7.5px;">
+        <div class="col-md-6" style="height: 100%;">
+            <div class="panel panel-default" style="box-shadow: 0 2px 4px rgba(0, 0, 0, .2);border-radius: 10px;height: 100%;">
+                <div class="panel-heading">
+                    源值域列表
+                </div>
+                <div class="panel-body">
+                    <div class="form-group btn-toolbar toolbar" role="toolbar" style="float:left;width: 80%;">
+                        <div class="col-xs-12">
+                            <label for="source_datasource" class="control-label col-xs-1 ">数据源</label>
+                            <div class="col-xs-2 select2-right-radius-zero">
+                                <select id="source_datasource" name="source_datasource" class="js-example-templating js-states form-control input-group">
+                                    <option></option>
+                                </select>
+                            </div>
+                            <span class="btn btn-green btn-sm label-group">链接</span>
+                            <!--<div class="col-xs-1">
+                                <span id="add_datatarget" class="btn btn-green btn-sm glyphicon glyphicon-plus "></span>
+                            </div>
+                            <label for="source_user" class="control-label col-xs-1 ">用户</label>-->
+                            <div class="col-xs-2 select2-right-radius-zero">
+                                <select id="source_user" name="source_user" class="js-example-templating js-states form-control input-group">
+                                    <option></option>
+                                </select>
+                            </div>
+                            <span class="btn btn-green btn-sm label-group">用户</span>
+                            <!--<label for="source_tables" class="control-label col-xs-1 ">数据表</label>-->
+                            <div class="col-xs-2 select2-right-radius-zero">
+                                <select id="source_tables" name="source_tables" class="js-example-templating js-states form-control input-group">
+                                    <option></option>
+                                </select>
+                            </div>
+                            <span class="btn btn-green btn-sm label-group">表/视图</span>
+                            <div class="col-xs-2">
+                                <span id="source_columns" class="btn btn-green btn-sm glyphicon glyphicon-search" ></span>
+                                <span id="source_filter" class="btn btn-green btn-sm glyphicon glyphicon-minus-sign" > 过滤</span>
+                                <span id="source_all" class="btn btn-green btn-sm glyphicon glyphicon-adjust" style="display: none;"> 全部</span>
+                            </div>
+                        </div>
+                    </div>
+                    <table class="table table-striped table-tips table-tips-green" id="source_table">
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6" style="height: 100%;">
+            <div class="panel panel-default" style="box-shadow: 0 2px 4px rgba(0, 0, 0, .2);border-radius: 10px;height: 100%;">
+                <div class="panel-heading">
+                    目标值域列表
+                </div>
+                <div class="panel-body">
+                    <div class="form-group btn-toolbar toolbar" role="toolbar" style="float:left;width: 80%;">
+                        <div class="col-xs-12">
+                            <label for="target_datasource" class="control-label col-xs-1 ">数据源</label>
+                            <div class="col-xs-2 select2-right-radius-zero">
+                                <select id="target_datasource" name="target_datasource" class="js-example-templating js-states form-control input-group">
+                                    <option></option>
+                                </select>
+                            </div>
+                            <span class="btn btn-green btn-sm label-group">链接</span>
+                            <!--<div class="col-xs-1"><span id="add_datasource" class="btn btn-green btn-sm glyphicon glyphicon-plus "></span>
+                            </div>
+                            <label for="target_user" class="control-label col-xs-1 ">用户</label>-->
+                            <div class="col-xs-2 select2-right-radius-zero">
+                                <select id="target_user" name="target_user" class="js-example-templating js-states form-control input-group">
+                                    <option></option>
+                                </select>
+                            </div>
+                            <span class="btn btn-green btn-sm label-group">用户</span>
+                            <!--<label for="target_tables" class="control-label col-xs-1 ">数据表</label>-->
+                            <div class="col-xs-2 select2-right-radius-zero">
+                                <select id="target_tables" name="target_tables" class="js-example-templating js-states form-control input-group">
+                                    <option></option>
+                                </select>
+                            </div>
+                            <span class="btn btn-green btn-sm label-group">表/视图</span>
+                            <div class="col-xs-2">
+                                <span id="target_columns" class="btn btn-green btn-sm glyphicon glyphicon-search" ></span>
+                                <!--<span id="target_filter" class="btn btn-green btn-sm glyphicon glyphicon-minus-sign" > 过滤</span>
+                                <span id="target_all" class="btn btn-green btn-sm glyphicon glyphicon-adjust" style="display: none;"> 全部</span>-->
+                            </div>
+                        </div>
+                    </div>
+                    <table class="table table-striped table-tips table-tips-green" id="target_table">
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<span id="dictmapping_btn" class="glyphicon glyphicon-arrow-up dict-save"></span>
+</body>
+<script type="text/javascript">
+    dictSettings = {};
+    insertLock = false;
+    selectDate = {};
+    $(document).ready(function() {
+        refreshDictSearch();
+        refreshDictMapping();
+        refreshDictTable();
+        refreshDataSource();
+        initVersionSelect2();
+        $('#add_version').click(function () {
+            layer.prompt({title: '请输入新版本号'}, function (version, index) {
+                layer.close(index);
+                var url = compileUrl('${rc.contextPath}/dictmapping/selectMappingVersion');
+                var para = {};
+                $.ajax({
+                    url: url,
+                    data: para,
+                    dataType: "json",
+                    type: "post",
+                    success: function (data) {
+                        if (!data.success) {
+                            layer.alert(data.errorMsg);
+                            return false;
+                        } else {
+                            data.data.data.push({version:version});
+                            var row = $.map(data.data.data, function (row) {
+                                return {
+                                    id: row.version,
+                                    text: row.version
+                                };
+                            });
+                            var $select =$("#target_dict_version");
+                            if($select.data('select2')){
+                                $select.select2('destroy').empty();
+                            }
+                            $select.select2({
+                                placeholder: "-请选择-",
+                                allowClear: true,
+                                data: row
+                            });
+                            $select.val(version).select2();
+                        }
+                    }
+                })
+            })
+        })
+
+        /*$('#target_filter').click(function () {
+            if(typeof dictSettings.target_code=='undefined'){
+                layer.alert('请指定要查询的字段');
+                return;
+            }
+            var para ={
+                datasource: $("#target_datasource").val(),
+                username: $("#target_user").val(),
+                tablename: $("#target_tables").val(),
+                columns: dictSettings.target_code,
+                target_dict: dictSettings.target_dict
+            }
+            var url = compileUrl('${rc.contextPath}/dictmapping/selectTargetCode')
+            $.ajax({
+                url : url,
+                data : para,
+                dataType : "json",
+                type : "post",
+                success : function(data) {
+                    if (!data.success) {
+                        layer.alert(data.errorMsg);
+                        return false;
+                    } else {
+                        var target_codes = new Array();
+                        for(var i=0;i<data.data.target_code.length;i++){
+                            target_codes.push(data.data.target_code[i].target_code)
+                        }
+                        var para = {};
+                        para[dictSettings.target_code] = target_codes;
+                        $('#target_filter').hide();
+                        $('#target_all').show();
+                        $('#target_table').bootstrapTable('filterBy', para
+                            /!*,
+                            {
+                                'filterAlgorithm': function(row,filters)
+                                {
+                                    if(filters[dictSettings.target_code].indexOf(row[dictSettings.target_code])>-1) return false;
+                                    else return true;
+                                }
+                            }*!/
+                            )
+                    }
+                },
+                error : function(XMLHttpRequest) {
+                    layer.alert(XMLHttpRequest.responseText, {
+                        shade : 0
+                    });
+                    return false;
+                }
+            });
+        })
+        $('#target_all').click(function () {
+            $('#target_all').hide();
+            $('#target_filter').show();
+            $('#target_table').bootstrapTable('filterBy', {}
+            /!*,
+                {
+                    'filterAlgorithm': function (row, filters) {
+                        return true;
+                    }
+                }*!/
+                )
+        })*/
+
+        $('#source_filter').click(function () {
+            if(typeof dictSettings.source_code=='undefined'){
+                layer.msg('请指定要查询的字段');
+                return;
+            }
+            var version = $("#target_dict_version").val();
+            if(version==''){
+                layer.msg('请指定版本号');
+                return;
+            }
+            $('#source_table').bootstrapTable('uncheckAll');
+            var para ={
+                datasource: $("#source_datasource").val(),
+                username: $("#source_user").val(),
+                tablename: $("#source_tables").val(),
+                columns: dictSettings.source_code,
+                version:version,
+                source_dict: dictSettings.source_dict
+            }
+            var url = compileUrl('${rc.contextPath}/dictmapping/selectSourceCode')
+            $.ajax({
+                url : url,
+                data : para,
+                dataType : "json",
+                type : "post",
+                success : function(data) {
+                    if (!data.success) {
+                        layer.alert(data.errorMsg);
+                        return false;
+                    } else {
+                        var source_codes = new Array();
+                        for(var i=0;i<data.data.source_code.length;i++){
+                            source_codes.push(data.data.source_code[i].source_code);
+                            source_codes.push(parseInt(data.data.source_code[i].source_code));
+                        }
+                        var para = {};
+                        para[dictSettings.source_code] = source_codes;
+                        $('#source_filter').hide();
+                        $('#source_all').show();
+                        $('#source_table').bootstrapTable('filterBy', para
+                            /*,
+                            {
+                                'filterAlgorithm': function(row,filters)
+                                {
+                                    if(filters[dictSettings.target_code].indexOf(row[dictSettings.target_code])>-1) return false;
+                                    else return true;
+                                }
+                            }*/
+                        )
+                    }
+                },
+                error : function(XMLHttpRequest) {
+                    layer.alert(XMLHttpRequest.responseText, {
+                        shade : 0
+                    });
+                    return false;
+                }
+            });
+        })
+        $('#source_all').click(function () {
+            $('#source_all').hide();
+            $('#source_filter').show();
+            $('#source_table').bootstrapTable('filterBy', {}
+                /*,
+                    {
+                        'filterAlgorithm': function (row, filters) {
+                            return true;
+                        }
+                    }*/
+            )
+        })
+
+        $('#all_btn').click(function () {
+            refreshDictMapping(1);
+        })
+        $('#refresh_btn').click(function () {
+            refreshDictMapping(0);
+        })
+        $('#add_btn').click(function () {
+            addDictMapping();
+        })
+        $('#automapping_btn').click(function () {
+            autoMapping();
+        })
+        $('#add_datasource').click(function () {
+            var url = compileUrl('${rc.contextPath}/hddp/index/addDataSource?type=1');
+            layer.open({
+                type : 2,
+                title : '添加数据源',
+                content : url,
+                area : [ '800px', '500px' ],
+                maxmin : true
+            });
+        })
+        $('#add_datatarget').click(function () {
+            var url = compileUrl('${rc.contextPath}/hddp/index/addDataSource?type=2');
+            layer.open({
+                type : 2,
+                title : '添加数据源',
+                content : url,
+                area : [ '800px', '500px' ],
+                maxmin : true
+            });
+        })
+        $("#target_datasource").on("change",function(){
+            var datasource = $(this).val();
+            if(datasource==null||datasource==''){
+                $("#target_user").select2('destroy').empty();
+                $("#target_tables").select2('destroy').empty();
+                return;
+            }
+            var url = compileUrl('${rc.contextPath}/database/selectUser');
+            var para = { datasource:datasource };
+            $.ajax({
+                url : url,
+                data : para,
+                dataType : "json",
+                type : "post",
+                success : function(data) {
+                    if (!data.success) {
+                        layer.alert(data.errorMsg);
+                        return false;
+                    } else {
+                        var user_list=[];
+                        for(var i=0;i<data.data.data.length;i++){
+                            user_list.push({ id: data.data.data[i], text: data.data.data[i] });
+                        }
+                        var $select =$("#target_user");
+                        if($select.data('select2')){
+                            $select.select2('destroy').empty();
+                        }
+                        var $select2 =$("#target_table");
+                        if($select2.data('select2')){
+                            $select2.select2('destroy').empty();
+                        }
+                        $("#target_user").select2({
+                            placeholder: "-请选择-",
+                            allowClear: true,
+                            data: user_list
+                        });
+                    }
+                },
+                error : function(XMLHttpRequest) {
+                    layer.alert(XMLHttpRequest.responseText, {
+                        shade : 0
+                    });
+                    return false;
+                }
+            });
+        })
+        $("#source_datasource").on("change",function(){
+            var datasource = $(this).val();
+            if(datasource==null||datasource==''){
+                $("#source_user").select2('destroy').empty();
+                $("#source_tables").select2('destroy').empty();
+                return;
+            }
+            var url = compileUrl('${rc.contextPath}/database/selectUser');
+            var para = { datasource:datasource };
+            $.ajax({
+                url : url,
+                data : para,
+                dataType : "json",
+                type : "post",
+                success : function(data) {
+                    if (!data.success) {
+                        layer.alert(data.errorMsg);
+                        return false;
+                    } else {
+                        var user_list=[];
+                        for(var i=0;i<data.data.data.length;i++){
+                            user_list.push({ id: data.data.data[i], text: data.data.data[i] });
+                        }
+                        var $select =$("#source_user");
+                        if($select.data('select2')){
+                            $select.select2('destroy').empty();
+                        }
+                        var $select2 =$("#source_table");
+                        if($select2.data('select2')){
+                            $select2.select2('destroy').empty();
+                        }
+                        $("#source_user").select2({
+                            placeholder: "-请选择-",
+                            allowClear: true,
+                            data: user_list
+                        });
+                    }
+                },
+                error : function(XMLHttpRequest) {
+                    layer.alert(XMLHttpRequest.responseText, {
+                        shade : 0
+                    });
+                    return false;
+                }
+            });
+        })
+        $("#target_user").on("change",function(){
+            var datasource = $("#target_datasource").val();
+            var user = $(this).val();
+            if(user==null||user==''){
+                $("#target_tables").select2('destroy').empty();
+                return;
+            }
+            var url = compileUrl('${rc.contextPath}/database/selectTables');
+            var para = {
+                datasource: datasource,
+                user: user
+            };
+            $.ajax({
+                url : url,
+                data : para,
+                dataType : "json",
+                type : "post",
+                success : function(data) {
+                    if (!data.success) {
+                        layer.alert(data.errorMsg);
+                        return false;
+                    } else {
+                        var table_list=[];
+                        for(var i=0;i<data.data.data.length;i++){
+                            table_list.push({ id: data.data.data[i], text: data.data.data[i] });
+                        }
+                        var $select =$("#target_tables");
+                        if($select.data('select2')){
+                            $select.select2('destroy').empty();
+                        }
+                        $("#target_tables").select2({
+                            placeholder: "-请选择-",
+                            allowClear: true,
+                            data: table_list
+                        });
+                    }
+                },
+                error : function(XMLHttpRequest) {
+                    layer.alert(XMLHttpRequest.responseText, {
+                        shade : 0
+                    });
+                    return false;
+                }
+            });
+        })
+
+        $("#source_user").on("change",function(){
+            var datasource = $("#source_datasource").val();
+            var user = $(this).val();
+            if(user==null||user==''){
+                $("#source_tables").select2('destroy').empty();
+                return;
+            }
+            var url = compileUrl('${rc.contextPath}/database/selectTables');
+            var para = {
+                datasource: datasource,
+                user: user
+            };
+            $.ajax({
+                url : url,
+                data : para,
+                dataType : "json",
+                type : "post",
+                success : function(data) {
+                    if (!data.success) {
+                        layer.alert(data.errorMsg);
+                        return false;
+                    } else {
+                        var table_list=[];
+                        for(var i=0;i<data.data.data.length;i++){
+                            table_list.push({ id: data.data.data[i], text: data.data.data[i] });
+                        }
+                        var $select =$("#source_tables");
+                        if($select.data('select2')){
+                            $select.select2('destroy').empty();
+                        }
+                        $("#source_tables").select2({
+                            placeholder: "-请选择-",
+                            allowClear: true,
+                            data: table_list
+                        });
+                    }
+                },
+                error : function(XMLHttpRequest) {
+                    layer.alert(XMLHttpRequest.responseText, {
+                        shade : 0
+                    });
+                    return false;
+                }
+            });
+        })
+
+        /*$("#target_tables").on("change",function(){
+            var datasource = $("#target_datasource").val();
+            var username = $("#target_user").val();
+            var tablename = $(this).val();
+            var url = compileUrl('${rc.contextPath}/dictmapping/selectDict');
+            var para = {
+                datasource: datasource,
+                username: username,
+                tablename: tablename
+            };
+            //$('#target_table').bootstrapTable('destroy');
+            //initDictTable('target_table',url,para);
+        })
+
+        $("#source_tables").on("change",function(){
+            var datasource = $("#source_datasource").val();
+            var username = $("#source_user").val();
+            var tablename = $(this).val();
+            var url = compileUrl('${rc.contextPath}/dictmapping/selectDict');
+            var para = {
+                datasource: datasource,
+                username: username,
+                tablename: tablename
+            };
+            $('#source_table').bootstrapTable('destroy');
+            initDictTable('source_table',url,para);
+        })*/
+        
+        $('#target_columns').click(function () {
+            if($("#target_tables").val()==null||$("#target_tables").val()==''){
+                layer.msg('请指定数据源、用户和表');
+                return;
+            }
+            var index = layer.open({
+                type : 1,
+                title : '设置查询的字段',
+                content : '',
+                area : [ '800px', '650px' ],
+                success :function (layero, index) {
+                    $('.layui-layer-content').append('<div><table class="table table-striped table-tips table-tips-green" id="target_columns_table"></div>');
+                    $('.layui-layer-content').append('<div class="form-group">\n' +
+                        '<label class="col-xs-2 control-label required">值域标准字段</label>\n' +
+                        '<div class="col-xs-2">\n' +
+                        '<input class="form-control" type="text" id="dict_column" name="dict_column" autocomplete="off" value="dict_code">\n' +
+                        '</div>\n' +
+                        '<label class="col-xs-2 control-label required">值域标准值</label>\n' +
+                        '<div class="col-xs-2">\n' +
+                        '<input class="form-control" type="text" id="target_dict" name="target_dict" autocomplete="off">\n' +
+                        '</div>\n' +
+                        '<div class="col-xs-2"><span id="search_btn2" class="btn btn-green btn-sm glyphicon glyphicon-search" style="position: relative;left: 50%;transform: translateX(-50%);"> 查询</span></div>' +
+                        '</div>');
+                    var para = {
+                        datasource: $("#target_datasource").val(),
+                        username: $("#target_user").val(),
+                        tablename: $("#target_tables").val()
+                    };
+                    refreshTargetColumnsTable('target_columns_table',compileUrl('${rc.contextPath}/database/selectColumn'),para);
+                    $('body').off('click','#search_btn2');
+                    $('body').on('click','#search_btn2',function () {
+                        var dict_column = $('#dict_column').val();
+                        var target_dict = $('#target_dict').val();
+
+                        if(target_dict==null||target_dict==''){
+                            layer.msg('请设置值域标准值');
+                            return;
+                        }
+                        dictSettings.target_dict = target_dict;
+                        var row = $.map($('#target_columns_table').bootstrapTable('getSelections'),function (row) {
+                                return row;
+                            });
+                        var datasource = $("#target_datasource").val();
+                        var username = $("#target_user").val();
+                        var tablename = $("#target_tables").val();
+                        var url = compileUrl('${rc.contextPath}/dictmapping/selectDict');
+                        var columns = [];
+                        for(var i=0;i<row.length;i++){
+                            columns.push(row[i]['name']);
+                        }
+                        var para = {
+                            datasource: datasource,
+                            username: username,
+                            tablename: tablename,
+                            columns:columns.join(","),
+                            key: dict_column,
+                            value:target_dict
+                        };
+                        $('#target_table').bootstrapTable('destroy');
+                        initDictTable('target_table',url,para);
+                        layer.closeAll();
+                    })
+                }
+            });
+        })
+
+        $('#source_columns').click(function () {
+            if($("#source_tables").val()==null||$("#source_tables").val()==''){
+                layer.msg('请指定数据源、用户和表');
+                return;
+            }
+            var index = layer.open({
+                type : 1,
+                title : '设置查询的字段',
+                content : '',
+                area : [ '1000px', '650px' ],
+                success :function () {
+                    $('.layui-layer-content').append('<table class="table table-striped table-tips table-tips-green" id="source_columns_table">');
+                    $('.layui-layer-content').append('<div class="form-group">' +
+                        '<label class="col-xs-2 control-label required">源值域类型</label>' +
+                        '<div class="col-xs-2">' +
+                        '<select class="form-control" id="source_type" name="source_type" style="padding: 0 12px;"><option value="0">-请选择-</option><option value="1">标准值域表</option><option value="2">实体值域表</option><option value="3">枚举数据表</option></select>' +
+                        '</div>' +
+                        '<label id="source_type0" name="source_type_dict" class="col-xs-2 control-label required">请选择值域类型</label>' +
+                        '<label id="source_type1" name="source_type_dict" class="col-xs-2 control-label required" style="display: none;">值域编码</label>' +
+                        '<label id="source_type2" name="source_type_dict" class="col-xs-2 control-label required" style="display: none;">值域表名</label>' +
+                        '<label id="source_type3" name="source_type_dict" class="col-xs-2 control-label required" style="display: none;">枚举字段</label>' +
+                        '<div class="col-xs-2">' +
+                        '<input class="form-control" type="text" id="source_dict" name="source_dict" autocomplete="off" >' +
+                        '</div>' +
+                        '<div class="col-xs-2"><span id="search_btn" class="btn btn-green btn-sm glyphicon glyphicon-search" style="position: relative;left: 50%;transform: translateX(-50%);"> 查询</span></div>' +
+                        '</div><br/>' +
+                        '<div class="form-group" id="split_div">' +
+                        '<label class="col-xs-2 control-label required">值处理</label>' +
+                        '<div class="col-xs-1">' +
+                        '<input class="form-control input-group" type="text" id="source_reg" name="source_reg" autocomplete="off" >' +
+                        '</div>' +
+                        '<span class="btn btn-green btn-sm label-group" id="reg_label" style="float: left;">分隔符</span>' +
+                        '<div class="col-xs-1">' +
+                        '<input class="form-control input-group" type="number" id="source_index" name="source_index" autocomplete="off" value="0">' +
+                        '</div>' +
+                        '<span class="btn btn-green btn-sm label-group" id="index_label">位置</span>' +
+                        '</div>' +
+                       /* '</div>\n' +
+                        '<div class="form-group">\n' +
+                        '<span class="help-block">源值域类型和值域标准码的对应关系：</br>标准值域表-->值域编码；</br>实体值域表-->值域表名；</br>枚举数据表-->枚举字段。</span>\n' +*/
+                        '');
+                    $('#split_div').hide();
+                    var para = {
+                        datasource: $("#source_datasource").val(),
+                        username: $("#source_user").val(),
+                        tablename: $("#source_tables").val()
+                    };
+                    $('body').off('change','#source_type');
+                    $('body').on('change','#source_type',function () {
+                        var source_type = $('#source_type').val();
+                        $('label[name="source_type_dict"]').hide();
+                        $('#source_type'+source_type).show();
+                        if(source_type=='1'){
+                            $('#split_div').hide();
+                        } else if(source_type=='2'){
+                            $('#split_div').hide();
+                            $('#source_dict').val($('#source_tables').val());
+                        }else if(source_type=='3'){
+                            $('#split_div').show();
+                            var column = $('#source_columns_table').bootstrapTable('getSelections');
+                            if(column.length>0) {
+                                $('#source_dict').val(column[0].name);
+                            }
+                        }
+                    })
+                    refreshSourceColumnsTable('source_columns_table',compileUrl('${rc.contextPath}/database/selectColumn'),para);
+                    $('body').off('click','#search_btn');
+                    $('body').on('click','#search_btn',function () {
+                        var source_type = $('#source_type').val();
+                        var source_reg = $('#source_reg').val();
+                        if(source_type==null||source_type==''){
+                            layer.msg('请设置源值域类型');
+                            return;
+                        }
+                        var source_dict = $('#source_dict').val();
+                        var source_index = $('#source_index').val();
+                        if(source_dict==null||source_dict==''){
+                            layer.msg('请设置值域标准码');
+                            return;
+                        }
+                        if(source_type=='3'){
+                            dictSettings.source_code = source_dict;
+                            dictSettings.source_value = source_dict;
+                            dictSettings.source_reg = source_reg;
+                            dictSettings.source_index = source_index;
+                        }else{
+                            dictSettings.source_reg = null;
+                        }
+                        dictSettings.source_dict = source_dict;
+                        var row = $.map($('#source_columns_table').bootstrapTable('getSelections'),function (row) {
+                            return row;
+                        });
+                        var datasource = $("#source_datasource").val();
+                        var username = $("#source_user").val();
+                        var tablename = $("#source_tables").val();
+                        var url = compileUrl('${rc.contextPath}/dictmapping/selectDict');
+                        var columns = [];
+                        if(source_type=='3'){
+                            columns.push(source_dict);
+                        }else {
+                            for (var i = 0; i < row.length; i++) {
+                                columns.push(row[i]['name']);
+                            }
+                        }
+                        var para = {
+                            datasource: datasource,
+                            username: username,
+                            tablename: tablename,
+                            columns:columns.join(",")
+                        };
+                        $('#source_table').bootstrapTable('destroy');
+                        initDictTable('source_table',url,para);
+                        layer.closeAll();
+                    })
+                }
+            });
+        })
+        $('#dictmapping_btn').click(function () {
+            var target_row = $.map($('#target_table').bootstrapTable('getSelections'),function (row) {
+                return row;
+            });
+            var source_row = $.map($('#source_table').bootstrapTable('getSelections'),function (row) {
+                return row;
+            });
+            var version = $("#target_dict_version").val();
+            if(version==''){
+                layer.msg('请指定版本号');
+                return;
+            }
+            if(target_row.length>1&&source_row.length>1){
+                layer.msg('不支持多对多映射！');
+                return;
+            }
+            if(target_row.length==0){
+                layer.msg('请在目标表中选中需要映射的内容');
+                return;
+            }
+            if(source_row.length==0){
+                layer.msg('请在源表中选中需要映射的内容');
+                return;
+            }
+            var datasource = $("#source_datasource").val();
+            var username = $("#source_user").val();
+            var tablename = $("#source_tables").val();
+            var mapping = new Array();
+            if(target_row.length==1){
+                for(var i=0;i<source_row.length;i++){
+                    var item = {
+                        target_code: target_row[0][dictSettings.target_code],
+                        target_value: target_row[0][dictSettings.target_value],
+                        target_dict: dictSettings.target_dict,
+                        source_code: source_row[i][dictSettings.source_code],
+                        source_value: source_row[i][dictSettings.source_value],
+                        source_dict: dictSettings.source_dict,
+                        source_datasource: datasource,
+                        source_user: username,
+                        source_table: tablename,
+                        comments:'',
+                        version:version
+                    };
+                    mapping.push(item)
+                }
+            }else if(source_row.length==1){
+                for(var i=0;i<target_row.length;i++){
+                    var item = {
+                        target_code: target_row[i][dictSettings.target_code],
+                        target_value: target_row[i][dictSettings.target_value],
+                        target_dict: dictSettings.target_dict,
+                        source_code: source_row[0][dictSettings.source_code],
+                        source_value: source_row[0][dictSettings.source_value],
+                        source_dict: dictSettings.source_dict,
+                        source_datasource: datasource,
+                        source_user: username,
+                        source_table: tablename,
+                        comments: '',
+                        version:version
+                    };
+                    mapping.push(item);
+                }
+            }else {}
+            var para = {
+                mapping: mapping
+            }
+            var url = compileUrl('${rc.contextPath}/dictmapping/saveDictMapping');
+            $.ajax({
+                type: 'post',
+                async: true,
+                url: url,
+                data: JSON.stringify(para),
+                dataType: 'json',
+                contentType: 'application/json;charset=UTF-8;',
+                success: function (data) {
+                    if (!data.success) {
+                        layer.alert(data.errorMsg, {
+                            shade: 0
+                        });
+                    } else {
+                        layer.msg('添加成功');
+                        $('#source_filter').click();
+                        $('#source_table').bootstrapTable('uncheckAll');
+                        refreshDictMapping(0);
+                        refreshDictSearch();
+                    }
+                },
+                error: function (XMLHttpRequest) {
+                    layer.alert(XMLHttpRequest.responseText, {
+                        shade: 0
+                    });
+                }
+            });
+        })
+    });
+
+    function initVersionSelect2() {
+        var url = compileUrl('${rc.contextPath}/dictmapping/selectMappingVersion');
+        var para = {};
+        $.ajax({
+            url: url,
+            data: para,
+            dataType: "json",
+            type: "post",
+            success: function (data) {
+                if (!data.success) {
+                    layer.alert(data.errorMsg);
+                    return false;
+                } else {
+                    var row = $.map(data.data.data, function (row) {
+                        return {
+                            id: row.version,
+                            text: row.version
+                        };
+                    });
+                    $("#target_dict_version").select2({
+                        placeholder: "-请选择-",
+                        allowClear: true,
+                        data: row
+                    });
+                }
+            }
+        })
+    }
+
+    function autoMapping() {
+        var target_row = $('#target_table').bootstrapTable('getData');
+        var source_row = $('#source_table').bootstrapTable('getData');
+        var version = $("#target_dict_version").val();
+        if(version==''){
+            layer.msg('请指定版本号');
+            return;
+        }
+        if(target_row.length==0){
+            layer.msg('请在目标表中获取需要映射的内容');
+            return;
+        }
+        if(source_row.length==0){
+            layer.msg('请在源表中获取需要映射的内容');
+            return;
+        }
+        var scores = new Array();
+        for(var i=0;i<source_row.length;i++){
+            var maxindex,maxscore = 0 ;
+            for(var j = 0;j<target_row.length;j++){
+                var score = similar(source_row[i][dictSettings.source_value],target_row[j][dictSettings.target_value]);
+                if(score>maxscore){
+                    maxindex = j;
+                    maxscore = score;
+                }
+            }
+            var item = {
+                source_code:source_row[i][dictSettings.source_code],
+                source_value:source_row[i][dictSettings.source_value],
+                target_code:target_row[maxindex][dictSettings.target_code],
+                target_value:target_row[maxindex][dictSettings.target_value],
+                score: score
+            }
+            scores.push(item);
+        }
+        var scores_sort = scores.sort(sortNumber);
+        var datasource = $("#source_datasource").val();
+        var username = $("#source_user").val();
+        var tablename = $("#source_tables").val();
+        var mapping = new Array();
+        var checkarr = new Array();
+        for(var i =0;i<scores_sort.length;i++){
+            if(mapping.length==source_row.length){
+                break;
+            }
+            var arr = {
+                source_code:scores_sort[i].source_code,
+                source_value:scores_sort[i].source_value
+            }
+            var item = {
+                source_code:scores_sort[i].source_code,
+                source_value:scores_sort[i].source_value,
+                source_dict: dictSettings.source_dict,
+                target_code:scores_sort[i].target_code,
+                target_value:scores_sort[i].target_value,
+                target_dict: dictSettings.target_dict,
+                source_datasource: datasource,
+                source_user: username,
+                source_table: tablename,
+                comments:'',
+                version:version
+            }
+            if(checkarr.indexOf(arr)==-1){
+                checkarr.push(arr);
+                mapping.push(item);
+            }
+        }
+        var para = {
+            mapping: mapping
+        }
+        var url = compileUrl('${rc.contextPath}/dictmapping/saveDictMapping');
+        $.ajax({
+            type: 'post',
+            async: true,
+            url: url,
+            data: JSON.stringify(para),
+            dataType: 'json',
+            contentType: 'application/json;charset=UTF-8;',
+            success: function (data) {
+                if (!data.success) {
+                    layer.alert(data.errorMsg, {
+                        shade: 0
+                    });
+                } else {
+                    layer.msg('添加成功');
+                    refreshDictMapping(0);
+                    refreshDictSearch();
+                }
+            },
+            error: function (XMLHttpRequest) {
+                layer.alert(XMLHttpRequest.responseText, {
+                    shade: 0
+                });
+            }
+        });
+    }
+    function refreshDictSearch() {
+        var target_dict = $('#target_dict_search').val();
+        var source_dict = $('#source_dict_search').val();
+        var url = compileUrl('${rc.contextPath}/dictmapping/selectDictStandard');
+        var para = {};
+        $.ajax({
+            url : url,
+            data : para,
+            dataType : "json",
+            type : "post",
+            success : function(data) {
+                if (!data.success) {
+                    layer.alert(data.errorMsg);
+                    return false;
+                } else {
+                    var source_list=[],target_list=[];
+                    for(var i=0;i<data.data.source_dict.length;i++){
+                        source_list.push({ id: data.data.source_dict[i].source_dict, text: data.data.source_dict[i].source_dict });
+                    }
+                    for(var i=0;i<data.data.target_dict.length;i++){
+                        target_list.push({ id: data.data.target_dict[i].target_dict, text: data.data.target_dict[i].target_dict });
+                    }
+                    var key =false;
+                    if(typeof selectDate.target_list=='undefined'){
+                        selectDate.target_list = target_list;
+                        key = true;
+                    }else{
+                        if(JSON.stringify(selectDate.target_list) == JSON.stringify(target_list)){
+                        }else {
+                            key = true;
+                        }
+                    }
+                    if(typeof selectDate.source_list=='undefined'){
+                        selectDate.source_list = source_list;
+                        key = true;
+                    }else{
+                        if(JSON.stringify(selectDate.source_list) == JSON.stringify(source_list)){
+                        }else {
+                            key = true;
+                        }
+                    }
+                    if(!key){
+                        return;
+                    }
+                    var $select =$("#target_dict_search");
+                    if($select.data('select2')){
+                        $select.select2('destroy').empty();
+                    }
+                    $("#target_dict_search").select2({
+                        placeholder: "-请选择-",
+                        allowClear: true,
+                        data: target_list
+                    });
+                    $select =$("#source_dict_search");
+                    if($select.data('select2')){
+                        $select.select2('destroy').empty();
+                    }
+                    $("#source_dict_search").select2({
+                        placeholder: "-请选择-",
+                        allowClear: true,
+                        data: source_list
+                    });
+                    if(target_dict!=null&&target_dict!=''){
+                        $("#target_dict_search").val(target_dict).select2();
+                    }
+                    if(source_dict!=null&&source_dict!='') {
+                        $("#source_dict_search").val(source_dict).select2();
+                    }
+                }
+            },
+            error : function(XMLHttpRequest) {
+                layer.alert(XMLHttpRequest.responseText, {
+                    shade : 0
+                });
+                return false;
+            }
+        });
+    }
+
+    function refreshTargetColumnsTable(id,url,para) {
+        $('#'+id).bootstrapTable('destroy');
+        $('#'+id).bootstrapTable({
+            url : url,
+            method : 'post',
+            contentType : 'application/x-www-form-urlencoded',
+            cache : false,
+            pagination : true,
+            sortable : false,
+            queryParams : para,
+            sidePagination : 'client',
+            pageNumber : 1,
+            pageSize : 10,
+            pageList : [ 10, 25, 50, 100 ],
+            minimumCountColumns : 2,
+            clickToSelect : true,
+            uniqueId : 'id',
+            responseHandler : function(res) {
+                return res.data.data;
+            },
+            columns : [ {
+                checkbox : true
+            }, {
+                //field: 'Number',//可不加
+                title: '序号',//标题  可不加
+                formatter: function (value, row, index) {
+                    return index + 1;
+                },
+                width: 50
+            }, {
+                field : 'name',
+                title : '字段名',
+            }, {
+                field : 'type',
+                title : '字段类型'
+            }, {
+                field : 'operate',
+                title : '操作',
+                formatter : function (value, row, index) {
+                    var id = row.name;
+                    return [
+                        '<a href="javascript:;" class="a-default" onclick="setDictValue(\''
+                        + id + '\',this,1)" style="margin-right:5px;">值</a>',
+                        '<a href="javascript:;" class="a-default" onclick="setDictCode(\''
+                        + id + '\',this,1)" style="margin-right:5px;">CODE</a>' ].join('');
+                }
+            }]
+        });
+    }
+
+    function refreshSourceColumnsTable(id,url,para) {
+        $('#'+id).bootstrapTable('destroy');
+        $('#'+id).bootstrapTable({
+            url : url,
+            method : 'post',
+            contentType : 'application/x-www-form-urlencoded',
+            cache : false,
+            pagination : true,
+            sortable : false,
+            queryParams : para,
+            sidePagination : 'client',
+            pageNumber : 1,
+            pageSize : 10,
+            pageList : [ 10, 25, 50, 100 ],
+            minimumCountColumns : 2,
+            search: true,
+            clickToSelect : true,
+            uniqueId : 'name',
+            responseHandler : function(res) {
+                return res.data.data;
+            },
+            columns : [ {
+                checkbox : true
+            }, {
+                //field: 'Number',//可不加
+                title: '序号',//标题  可不加
+                formatter: function (value, row, index) {
+                    return index + 1;
+                },
+                width: 50
+            }, {
+                field : 'name',
+                title : '字段名',
+            }, {
+                field : 'type',
+                title : '字段类型'
+            }, {
+                field : 'operate',
+                title : '操作',
+                formatter : function (value, row, index) {
+                    var id = row.name;
+                    return [
+                        '<a href="javascript:;" class="a-default" onclick="setDictValue(\''
+                        + id + '\',this,2)" style="margin-right:5px;">值</a>',
+                        '<a href="javascript:;" class="a-default" onclick="setDictCode(\''
+                        + id + '\',this,2)" style="margin-right:5px;">CODE</a>' ].join('');
+                }
+            }]
+        });
+    }
+
+    function setDictValue(id,e,type) {
+        if(type==1){
+            dictSettings.target_value = id;
+        }else{
+            dictSettings.source_value = id;
+        }
+        $(e).closest('table').find('.label-checked').each(function () {
+            if($(this).text()=='值'){
+                $(this).removeClass('label-checked');
+            }
+        })
+        if($(e).next().hasClass('label-checked')){
+            $(e).next().removeClass('label-checked');
+            if(type==1){
+                dictSettings.target_code = '';
+            }else{
+                dictSettings.source_code = '';
+            }
+        }
+        $(e).addClass('label-checked');
+    }
+
+    function setDictCode(id,e,type) {
+        if(type==1){
+            dictSettings.target_code = id;
+        }else{
+            dictSettings.source_code = id;
+        }
+        $(e).closest('table').find('.label-checked').each(function () {
+            if($(this).text()=='CODE'){
+                $(this).removeClass('label-checked');
+            }
+        })
+        if($(e).prev().hasClass('label-checked')){
+            $(e).prev().removeClass('label-checked');
+            if(type==1){
+                dictSettings.target_value = '';
+            }else{
+                dictSettings.source_value = '';
+            }
+        }
+        $(e).addClass('label-checked');
+    }
+
+    function refreshDataSource() {
+        var url = compileUrl('${rc.contextPath}/hddp/index/refreshDataSource');
+        var para = {};
+        $.ajax({
+            url : url,
+            data : para,
+            dataType : "json",
+            type : "post",
+            success : function(data) {
+                if (!data.success) {
+                    layer.alert(data.errorMsg);
+                    return false;
+                } else {
+                    var source_list=[],target_list=[];
+                    for(var i=0;i<data.data.total;i++){
+                        if(data.data.rows[i].datasource_purpose=='0') {
+                            source_list.push({ id: data.data.rows[i].datasource_id+','+data.data.rows[i].datasource_type, text: data.data.rows[i].datasource_type +'.'+data.data.rows[i].datasource_id});
+                        }
+                        if(data.data.rows[i].datasource_purpose=='1') {
+                            target_list.push({ id: data.data.rows[i].datasource_id+','+data.data.rows[i].datasource_type, text: data.data.rows[i].datasource_type +'.'+data.data.rows[i].datasource_id});
+                        }
+                    }
+                    var $select =$("#target_datasource");
+                    if($select.data('select2')){
+                        $select.select2('destroy').empty();
+                    }
+                    $("#target_datasource").select2({
+                        placeholder: "-请选择-",
+                        allowClear: true,
+                        data: target_list
+                    });
+                    $select =$("#source_datasource");
+                    if($select.data('select2')){
+                        $select.select2('destroy').empty();
+                    }
+                    $("#source_datasource").select2({
+                        placeholder: "-请选择-",
+                        allowClear: true,
+                        data: source_list
+                    });
+                }
+            },
+            error : function(XMLHttpRequest) {
+                layer.alert(XMLHttpRequest.responseText, {
+                    shade : 0
+                });
+                return false;
+            }
+        });
+    }
+
+    function refreshDictTable() {
+        var target_url = null;
+        $('#target_table').bootstrapTable('destroy');
+        initDictTable('target_table',target_url,{});
+        var source_url = null;
+        $('#source_table').bootstrapTable('destroy');
+        initDictTable('source_table',source_url,{});
+    }
+
+    function initDictTable(id,url,para) {
+        var columns=[ {
+            checkbox : true
+        }, {
+            title: '序号',//标题  可不加
+            formatter: function (value, row, index) {
+                return index + 1;
+            },
+            width: 50
+        }];
+        if(typeof para.columns!='undefined') {
+            var name = para.columns.split(',');
+            for (var i = 0; i < name.length; i++) {
+                columns.push({
+                    field: name[i],
+                    title: name[i]
+                })
+            }
+        }
+        var panel_height = $('#'+id).closest('.panel').height();
+        var panel_head = $('#'+id).closest('.panel').find('.panel-heading').height();
+        var panel_body = panel_height - panel_head;
+        var table_hight = panel_body - 30;
+        $('#'+id).bootstrapTable('destroy');
+        if(id=='target_table'){
+            $('#'+id).bootstrapTable({
+                url : url,
+                method : 'post',
+                contentType : 'application/x-www-form-urlencoded',
+                cache : false,
+                pagination : true,
+                sortable : false,
+                toolbar: '#' + id + ' .toolbar:first', //工具按钮用哪个容器
+                queryParams : para,
+                sidePagination : 'client',
+                pageNumber : 1,
+                pageSize : 10,
+                pageList : [ 10, 25, 50, 100 ],
+                search: true,
+                singleSelect: true,
+                minimumCountColumns : 2,
+                clickToSelect : true,
+                uniqueId : 'id',
+                height : table_hight,
+                responseHandler : function(res) {
+                    return res.data;
+                },
+                columns : columns
+            });
+        }else {
+            $('#' + id).bootstrapTable({
+                url: url,
+                method: 'post',
+                contentType: 'application/x-www-form-urlencoded',
+                cache: false,
+                pagination: true,
+                sortable: false,
+                toolbar: '#' + id + ' .toolbar:first', //工具按钮用哪个容器
+                queryParams: para,
+                sidePagination: 'client',
+                pageNumber: 1,
+                pageSize: 10,
+                pageList: [10, 25, 50, 100],
+                search: true,
+                minimumCountColumns: 2,
+                clickToSelect: true,
+                uniqueId: 'id',
+                height: table_hight,
+                responseHandler: function (res) {
+                    if(typeof dictSettings.source_reg!='undefined'&&dictSettings.source_reg!=null&&dictSettings.source_reg!='') {
+                        var data = new Array();
+                        var value = new Array();
+                        for (var i = 0; i < res.data.data.length; i++) {
+                            if (res.data.data[i][dictSettings.source_dict] == null) {
+                                continue;
+                            }
+                            var valuearr = res.data.data[i][dictSettings.source_dict].split(dictSettings.source_reg);
+                            res.data.data[i][dictSettings.source_dict]=valuearr[dictSettings.source_index];
+                            if (value.indexOf(res.data.data[i][dictSettings.source_dict]) == -1) {
+                                data.push(res.data.data[i]);
+                                value.push(res.data.data[i][dictSettings.source_dict]);
+                            }
+                        }
+                        res.data.data = data;
+                    }else{
+                        for (var i = 0; i < res.data.data.length; i++) {
+                            if (res.data.data[i][dictSettings.source_code] == null) {
+                                res.data.data.splice(i,1);
+                                break;
+                            }
+                        }
+
+                    }
+                    return res.data;
+                },
+                columns: columns
+            });
+        }
+    }
+    function refreshDictMapping(type) {
+        var url = null,para={};
+        if(typeof type=='undefined'){
+            url = null;
+            para = {}
+        }else if(type==1){
+            url = compileUrl('${rc.contextPath}/dictmapping/selectDictMappingAll');
+            para = {}
+        }else{
+            var target_dict = $('#target_dict_search').val();
+            var source_dict = $('#source_dict_search').val();
+            var version = $("#target_dict_version").val();
+            if(version==''){
+                layer.msg('请指定版本号');
+                return;
+            }
+            if((target_dict!=null&&target_dict!='')||(source_dict!=null&&source_dict!='')){
+                url = compileUrl('${rc.contextPath}/dictmapping/selectDictMapping');
+                para = {
+                    target_dict: target_dict,
+                    source_dict: source_dict,
+                    version: version
+                }
+            }
+        }
+        insertLock = false;
+        /*if(typeof dictSettings.target_dict !='undefined'||typeof dictSettings.source_dict !='undefined'){
+            url = compileUrl('${rc.contextPath}/dictmapping/selectDictMapping');
+            para = {
+                target_dict: typeof dictSettings.target_dict =='undefined'?'':dictSettings.target_dict,
+                source_dict: typeof dictSettings.source_dict =='undefined'?'':dictSettings.source_dict
+            }
+        }*/
+        //var url = compileUrl('${rc.contextPath}/dictmapping/selectDictMapping');
+        var panel_height = $('#dictmapping_table').closest('.panel').height();
+        var panel_head = $('#dictmapping_table').closest('.panel').find('.panel-heading').height();
+        var panel_body = panel_height - panel_head;
+        var table_hight = panel_body - 5;
+        $('#dictmapping_table').bootstrapTable('destroy');
+        $('#dictmapping_table').bootstrapTable({
+            url : url,
+            method : 'post',
+            contentType : 'application/x-www-form-urlencoded',
+            cache : false,
+            pagination : true,
+            sortable : false,
+            toolbar: '#dictmapping_table .toolbar:first', //工具按钮用哪个容器
+            queryParams : para,
+            sidePagination : 'client',
+            pageNumber : 1,
+            pageSize : 10,
+            pageList : [ 10, 25, 50, 100 ],
+            search: true,
+            minimumCountColumns : 2,
+            clickToSelect : true,
+            uniqueId : 'id',
+            height: table_hight,
+            responseHandler : function(res) {
+                return res.data;
+            },
+            columns : [ {
+                field: 'numberid',//可不加
+                title: '序号',//标题  可不加
+                formatter: function (value, row, index) {
+                    return index + 1;
+                },
+                width: 50
+            }, {
+                field : 'id',
+                title : 'id'
+            }, {
+                field : 'source_code',
+                title : '源值域CODE'
+            }, {
+                field : 'source_value',
+                title : '源值域VALUE'
+            }, {
+                field : 'source_dict',
+                title : '源值域标准'
+            }, {
+                field : 'target_code',
+                title : '目标值域CODE'
+            }, {
+                field : 'target_value',
+                title : '目标值域VALUE'
+            }, {
+                field : 'target_dict',
+                title : '目标值域标准'
+            }, {
+                field : 'source_datasource',
+                title : '源值域数据源'
+            }, {
+                field : 'source_user',
+                title : '源值域用户'
+            }, {
+                field : 'source_table',
+                title : '源值域表'
+            }, {
+                field : 'comments',
+                title : '备注'
+            }, {
+                field : 'operate',
+                title : '操作',
+                formatter : function (value, row, index) {
+                    var id = row.id;
+                    if(id=='新增记录中...'){
+                        return [
+                            '<a href="javascript:;" class="a-default" onclick="insertDictMapping(this)" style="margin-right:5px;">保存</a>'+
+                            '<a href="javascript:;" class="a-default" onclick="uninsertDictMapping(this)" style="margin-right:5px;">删除</a>'
+                        ].join('');
+                    }else {
+                        return [
+                            '<a href="javascript:;" class="a-default" onclick="editDictMapping(\''
+                            + id + '\',this)" style="margin-right:5px;">编辑</a>',
+                            '<a href="javascript:;" class="a-default" onclick="removeDictMapping(\''
+                            + id + '\')" style="margin-right:5px;">删除</a>'].join('');
+                    }
+                }
+            } ]
+        });
+    }
+
+    function insertDictMapping(e) {
+        var version = $("#target_dict_version").val();
+        if(version==''){
+            layer.msg('请指定版本号');
+            return;
+        }
+        var $tr = $(e).closest('tr');
+        var numberid = $tr.find('td:eq(0)').text(),
+            source_code = $tr.find('td:eq(2) input').val(),
+            source_value = $tr.find('td:eq(3) input').val(),
+            source_dict = $tr.find('td:eq(4)').text(),
+            target_code = $tr.find('td:eq(5) input').val(),
+            target_value = $tr.find('td:eq(6) input').val(),
+            target_dict = $tr.find('td:eq(7)').text(),
+            source_datasource = $tr.find('td:eq(8)').text(),
+            source_user = $tr.find('td:eq(9)').text(),
+            source_table = $tr.find('td:eq(10)').text(),
+            comments = $tr.find('td:eq(11) input').val();
+        if(target_code==null||target_code==''||source_code==null||source_code==''){
+            layer.msg('目标值域CODE和源值域CODE不能为空');
+            return;
+        }
+        var para = {
+            numberid: numberid,
+            target_code: target_code,
+            target_value: target_value?target_value:'',
+            target_dict: target_dict?target_dict:'',
+            source_code: source_code,
+            source_value: source_value?source_value:'',
+            source_dict: source_dict?source_dict:'',
+            source_datasource: source_datasource?source_datasource:'',
+            source_user: source_user?source_user:'',
+            source_table: source_table?source_table:'',
+            comments: comments?comments:'',
+            version: version
+        };
+        $tr.addClass('inserting');
+        var url = compileUrl('${rc.contextPath}/dictmapping/insertDictMapping');
+        $.ajax({
+            url : url,
+            data : para,
+            dataType : "json",
+            type : "post",
+            success : function(data) {
+                if (!data.success) {
+                    layer.alert(data.errorMsg);
+                    return false;
+                } else {
+                    var index = data.data.numberid;
+                    for(var i in data.data){
+                        saveData(index,i,data.data[i]);
+                    }
+                    insertLock = false;
+                    refreshDictSearch();
+                    $('#dictmapping_table .inserting td :eq(12)').html('<a href="javascript:;" class="a-default" onclick="editDictMapping(\''
+                        + data.data.id + '\',this)" style="margin-right:5px;">编辑</a>',
+                        '<a href="javascript:;" class="a-default" onclick="removeDictMapping(\''
+                        + data.data.id + '\')" style="margin-right:5px;">删除</a>');
+                }
+            },
+            error : function(XMLHttpRequest) {
+                layer.alert(XMLHttpRequest.responseText, {
+                    shade : 0
+                });
+                return false;
+            }
+        });
+    }
+
+    function uninsertDictMapping(e) {
+        insertLock = false;
+        $('#dictmapping_table').bootstrapTable('remove',{
+            field: 'id',
+            values: ['新增记录中...']
+        })
+        //$(e).closest('tr').remove();
+    }
+    
+    function saveData(index,field,value) {
+        $('#dictmapping_table').bootstrapTable('updateCell',{
+            index: index-1,
+            field: field,
+            value: value
+        })
+    }
+
+    function updateDictMapping(e) {
+        var $tr = $(e).closest('tr');
+        var numberid = $tr.find('td:eq(0)').text(),
+            id = $tr.find('td:eq(1)').text(),
+            source_code = $tr.find('td:eq(2) input').val(),
+            source_value = $tr.find('td:eq(3) input').val(),
+            source_dict = $tr.find('td:eq(4)').text(),
+            target_code = $tr.find('td:eq(5) input').val(),
+            target_value = $tr.find('td:eq(6) input').val(),
+            target_dict = $tr.find('td:eq(7)').text(),
+            source_datasource = $tr.find('td:eq(8)').text(),
+            source_user = $tr.find('td:eq(9)').text(),
+            source_table = $tr.find('td:eq(10)').text(),
+            comments = $tr.find('td:eq(11) input').val();
+        if(id==null||id==''){
+            layer.msg('id不能为空');
+            return;
+        }
+        if(target_code==null||target_code==''||source_code==null||source_code==''){
+            layer.msg('目标值域CODE和源值域CODE不能为空');
+            return;
+        }
+        var para = {
+            numberid: numberid,
+            id: id,
+            target_code: target_code,
+            target_value: target_value?target_value:'',
+            target_dict: target_dict?target_dict:'',
+            source_code: source_code,
+            source_value: source_value?source_value:'',
+            source_dict: source_dict?source_dict:'',
+            source_datasource: source_datasource?source_datasource:'',
+            source_user: source_user?source_user:'',
+            source_table: source_table?source_table:'',
+            comments: comments?comments:''
+        };
+        $tr.addClass('inserting');
+        var url = compileUrl('${rc.contextPath}/dictmapping/updateDictMapping');
+        $.ajax({
+            url : url,
+            data : para,
+            dataType : "json",
+            type : "post",
+            success : function(data) {
+                if (!data.success) {
+                    layer.alert(data.errorMsg);
+                    return false;
+                } else {
+                    var index = data.data.numberid;
+                    for(var i in data.data){
+                        saveData(index,i,data.data[i]);
+                    }
+                    refreshDictSearch();
+                    $('#dictmapping_table .inserting td :eq(12)').html('<a href="javascript:;" class="a-default" onclick="editDictMapping(\''
+                        + data.data.id + '\',this)" style="margin-right:5px;">编辑</a>',
+                        '<a href="javascript:;" class="a-default" onclick="removeDictMapping(\''
+                        + data.data.id + '\')" style="margin-right:5px;">删除</a>');
+                }
+            },
+            error : function(XMLHttpRequest) {
+                layer.alert(XMLHttpRequest.responseText, {
+                    shade : 0
+                });
+                return false;
+            }
+        });
+    }
+
+    function unupdateDictMapping(e) {
+        var data = $('#dictmapping_table').bootstrapTable('getData');
+        var index = parseInt($(e).closest('tr').find('td:eq(0)').text())-1;
+        $('#dictmapping_table').bootstrapTable('updateRow',{index: index, row: data[index]});
+    }
+    // 添加值域映射
+    function addDictMapping() {
+        if(insertLock){
+            layer.msg('请保存当前记录再执行新增');
+            return;
+        }
+        insertLock = true;
+        var index = $('#dictmapping_table').bootstrapTable('getData').length;
+        if(index>0){
+            var model=$('#dictmapping_table').bootstrapTable('getData')[index-1];
+            $('#dictmapping_table').bootstrapTable('insertRow',{
+                index: index,
+                row: {
+                    id:'新增记录中...',
+                    target_code:'<input class="form-control" type="text" name="target_code_input" autocomplete="off" >',
+                    target_value:'<input class="form-control" type="text" name="target_value_input" autocomplete="off" >',
+                    target_dict:model.target_dict,
+                    source_code:'<input class="form-control" type="text" name="source_code_input" autocomplete="off" >',
+                    source_value:'<input class="form-control" type="text" name="source_value_input" autocomplete="off" >',
+                    source_dict:model.source_dict,
+                    source_datasource:model.source_datasource,
+                    source_user:model.source_user,
+                    source_table:model.source_table,
+                    comments:'<input class="form-control" type="text" name="comments_input" autocomplete="off" >',
+                    operate:'<a href="javascript:;" class="a-default" onclick="insertDictMapping(this)" style="margin-right:5px;">保存</a>'+
+                    '<a href="javascript:;" class="a-default" onclick="uninsertDictMapping(this)" style="margin-right:5px;">删除</a>'
+                }
+            })
+        }else {
+            layer.msg('请先指定值域来源再新增');
+            return;
+        }
+        if(index>9) {
+            $('#dictmapping_panel .page-last').click();
+        }
+    }
+
+    // 删除值域映射
+    function removeDictMapping(id) {
+        layer.confirm('是否要删除该值域映射？', function () {
+            var url = compileUrl('${rc.contextPath}/dictmapping/deleteDictMapping');
+            var data = {
+                id: id
+            };
+            $.ajax({
+                type: 'post',
+                async: false,
+                url: url,
+                data: data,
+                dataType: 'json',
+                contentType: 'application/x-www-form-urlencoded;charset=UTF-8',
+                success: function (data) {
+                    if (!data.success) {
+                        layer.alert(data.errorMsg, {
+                            shade: 0
+                        });
+                    } else {
+                        layer.msg('删除成功');
+                        $('#dictmapping_table').bootstrapTable('remove',{
+                            field: 'id',
+                            values: [parseInt(data.data.id)]
+                        })
+                        //refreshDictMapping();
+                    }
+                },
+                error: function (XMLHttpRequest) {
+                    layer.alert(XMLHttpRequest.responseText, {
+                        shade: 0
+                    });
+                }
+            });
+        })
+    }
+
+    // 编辑值域映射
+    function editDictMapping(id,e) {
+        var $tr = $(e).closest('tr');
+        $tr.find('td').each(function (i) {
+            switch (i){
+                case 2: $(this).html('<input class="form-control" type="text" name="source_code_input" autocomplete="off" value="'+$(this).text()+'">');$(this).find('input').val($(this).find('input').attr('value'));break;
+                case 3: $(this).html('<input class="form-control" type="text" name="source_value_input" autocomplete="off" value="'+$(this).text()+'">');$(this).find('input').val($(this).find('input').attr('value'));break;
+                case 5: $(this).html('<input class="form-control" type="text" name="target_code_input" autocomplete="off" value="'+$(this).text()+'">');$(this).find('input').val($(this).find('input').attr('value'));break;
+                case 6: $(this).html('<input class="form-control" type="text" name="target_value_input" autocomplete="off" value="'+$(this).text()+'">');$(this).find('input').val($(this).find('input').attr('value'));break;
+                case 11: $(this).html('<input class="form-control" type="text" name="comments_input" autocomplete="off" value="'+$(this).text()+'">');$(this).find('input').val($(this).find('input').attr('value'));break;
+                case 12: $(this).html('<a href="javascript:;" class="a-default" onclick="updateDictMapping(this)" style="margin-right:5px;">保存</a>'+
+                    '<a href="javascript:;" class="a-default" onclick="unupdateDictMapping(this)" style="margin-right:5px;">取消</a>');break;
+            }
+        })
+    }
+
+    function similar(s, t, f) {
+        if (!s || !t) {
+            return 0;
+        }
+        var l = s.length > t.length ? s.length : t.length;
+        var n = s.length;
+        var m = t.length;
+        var d = [];
+        f = f || 3;
+        var min = function(a, b, c) {
+            return a < b ? (a < c ? a : c) : (b < c ? b : c);
+        }
+        var i, j, si, tj, cost;
+        if (n === 0) return m;
+        if (m === 0) return n;
+        for (i = 0; i <= n; i++) {
+            d[i] = [];
+            d[i][0] = i;
+        }
+        for (j = 0; j <= m; j++) {
+            d[0][j] = j;
+        }
+        for (i = 1; i <= n; i++) {
+            si = s.charAt(i - 1);
+            for (j = 1; j <= m; j++) {
+                tj = t.charAt(j - 1);
+                if (si === tj) {
+                    cost = 0;
+                } else {
+                    cost = 1;
+                }
+                d[i][j] = min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + cost);
+            }
+        }
+        var res = (1 - d[n][m] / l);
+        return res.toFixed(f);
+    }
+
+    function sortNumber(a,b)
+    {
+        return parseFloat(b.score) - parseFloat(a.score);
+    }
+
+</script>
+</html>

@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>添加数据源</title>
+    <#include "${rc.contextPath}/framework/importFile.html"/>
+</head>
+<style>
+    .form-control:focus {
+        border: 1px solid #0B9284;
+    }
+</style>
+<body>
+<div class="container-fluid" style="height: 100%;padding: 5px 5px 15px 5px;">
+    <div class="col-md-12" style="height: 100%;">
+        <div class="panel panel-default"
+             style="box-shadow: 0 2px 4px rgba(0, 0, 0, .2);border-radius: 10px;height: 100%;margin-bottom: 0;">
+            <div class="panel-heading" style="font-size: 18px;">
+                设置转换信息
+            </div>
+            <div class="panel-body">
+                <form class="form-horizontal" id="datasource_form"
+                      enctype="multipart/form-data">
+
+                    <div class="form-group">
+                        <label for="select_datasource" class="col-xs-2 control-label">查询数据源</label>
+                        <div class="col-xs-2">
+                            <select id="select_datasource" name="select_datasource"
+                                    class="js-example-templating js-states form-control">
+                                <option></option>
+                            </select>
+                        </div>
+                        <div class="col-xs-1"></div>
+                        <label for="insert_datasource" class="col-xs-2 control-label">新增数据源</label>
+                        <div class="col-xs-2">
+                            <select id="insert_datasource" name="insert_datasource"
+                                    class="js-example-templating js-states form-control">
+                                <option></option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="select_sql" class="col-xs-2 control-label">查询sql</label>
+                        <div class="col-xs-3">
+                            <textarea class="form-control" id="select_sql" name="select_sql" rows="10"></textarea>
+                        </div>
+
+                        <label for="insert_sql" class="col-xs-2 control-label">新增sql</label>
+                        <div class="col-xs-3">
+                            <textarea class="form-control" id="insert_sql" name="insert_sql" rows="10"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="notes" class="col-xs-2 control-label">备注</label>
+                        <div class="col-xs-3">
+                            <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                        </div>
+                        <label class="col-xs-2 control-label" style="margin-bottom: 15px;">是否查询条件</label>
+                        <div class="col-xs-1" style="margin-bottom: 15px;">
+                            <label class="radio-inline">
+                                <input type="radio" name="type" value="1" > 是
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" name="type" value="0" checked> 否
+                            </label>
+                        </div>
+                        <label class="col-xs-1 control-label" style="margin-bottom: 15px;">是否更新</label>
+                        <div class="col-xs-1" style="margin-bottom: 15px;">
+                            <label class="radio-inline">
+                                <input type="radio" name="isupdate" value="1"  checked> 是
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" name="isupdate" value="0"> 否
+                            </label>
+                        </div>
+                        <div class="col-xs-6"></div>
+                        <label for="filename" class="col-xs-2 control-label">文件名</label>
+                        <div class="col-xs-2">
+                            <input class="form-control" id="filename" name="filename" readonly/>
+                        </div>
+
+                    </div>
+                    <div class="form-group">
+                        <div class="pull-right">
+                            <span id="script_btn" class="btn btn-green btn-sm" onclick="createScript()">设置脚本</span>
+                            <span id="upload_btn" class="btn btn-green btn-sm" onclick="uploadFile()">上传</span>
+                            <span class="btn btn-green btn-sm" onclick="saveDdpSql()">保存</span>
+                            <a class="btn btn-green btn-sm" onclick="resetDdpSql()">清空</a>
+                        </div>
+                    </div>
+                </form>
+
+
+                <div class="panel panel-default" style="height: 36vh;box-shadow: none;"  id="paramDiv">
+                    <div class="panel-heading" style="font-size:18px">
+                        参数信息维护
+                        <div id="toolbar" class="btn-group pull-right">
+                            <span id="addRow" class="btn btn-green btn-sm glyphicon glyphicon-plus "></span>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="col-md-12 col-xs-12 col-sm-12 " style="margin: auto">
+                            <div class="box-panel">
+                                <div class="container-fluid box-content" style="min-height: auto;">
+                                    <div class="row">
+                                        <!--
+                                                                                    <div class="table-responsive" style="max-height: 90%;">
+                                        -->
+                                        <div style="margin: auto">
+                                            <table id="params_table"
+                                                   class="table table-striped table-hover text-nowrap">
+                                            </table>
+                                        </div>
+                                        <!--
+                                                                                    </div>
+                                        -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script type="text/javascript">
+    var id='${id!""}';
+    var $addRow = $('#addRow');
+    var $paramTable = $("#params_table");
+    $(document).ready(function () {
+        //初始化选择框
+        initDataSourceSelect2();
+        if(id!=null&&id!=''){
+            initSqlInfo();
+        }
+        //初始化table
+        createTable();
+        $('#select_sql').change(function () {
+            var param_keys = new Array();
+            var item = $(this).val().match(/:(.*?),/g);
+            if(item==null){
+                item = $(this).val().match(/:.*?$/g);
+            }
+            for(var i in item) {
+                if(param_keys.indexOf(item[i].replace(':','').replace(' ','').replace(',',''))==-1){
+                    param_keys.push(item[i].replace(':','').replace(' ','').replace(',',''));
+                }
+            }
+            var type=$('input:radio[name="type"]:checked').val();
+            if(param_keys.length>0){
+                if(type=='0'){
+                    $('input:radio[name="type"][value="1"]').prop("checked",true);
+                    $('input:radio[name="type"][value="0"]').prop("checked",false);
+                }else{
+                    $('#params_table').bootstrapTable("removeAll");
+                }
+            }else {
+                if(type=='1'){
+                    $('input:radio[name="type"][value="0"]').prop("checked",true);
+                    $('input:radio[name="type"][value="1"]').prop("checked",false);
+                    $('#params_table').bootstrapTable("removeAll");
+                }
+            }
+            var params_row_param_key = $.map($('#params_table').bootstrapTable('getData'), function (row) {
+                return row.param_key;
+            });
+            for (var i in param_keys) {
+                if(params_row_param_key.indexOf(param_keys[i])>-1){
+                    continue;
+                }
+                var pindex = $('#params_table').bootstrapTable('getData').length;
+                $('#params_table').bootstrapTable('insertRow', {
+                    index: pindex,
+                    row: {
+                        param_key:param_keys[i],
+                        param_value:""
+                    }
+                });
+            }
+        })
+
+        //增加行事件
+        $addRow.click(function () {
+            var index = $paramTable.bootstrapTable('getData').length;
+            var id = genID(10);
+            $paramTable.bootstrapTable('insertRow', {
+                index: index,
+                row: {
+                    id: id,
+                    param_key: '',
+                    param_value: ''
+                }
+            });
+        });
+        $("[name='type']").click(function (obj) {
+            if($(this).val()=='1'){
+                $("#paramDiv").show();
+            }else{
+                $paramTable.bootstrapTable('removeAll');
+                $("#paramDiv").hide();
+            }
+        });
+    });
+
+    function initSqlInfo() {
+        var url = compileUrl('${rc.contextPath}/columnmatch/selectColumnMatchByTableId');
+        var para = {
+            table_id: id
+        };
+        $.ajax({
+            url : url,
+            data : para,
+            dataType : "json",
+            type : "post",
+            success : function(data) {
+                if (!data.success) {
+                    layer.alert(data.errorMsg);
+                    return false;
+                } else {
+                    var datas = data.data.data;
+                    if(datas.length==0){
+                        layer.alert('没有设置数据元信息');
+                        return;
+                    }
+                    var insert_sql='insert into ';
+                    insert_sql += datas[0].target_user_name + '.'+ datas[0].target_table_name + '( ';
+                    for(var i in datas){
+                        if(datas[i].target_column_name==null){
+                            continue;
+                        }
+                        if(i>0){
+                            insert_sql += ',';
+                        }
+                        insert_sql += datas[i].target_column_name;
+                    }
+                    insert_sql += ' ) values ( ';
+                    for(var i in datas){
+                        if(datas[i].target_column_name==null){
+                            continue;
+                        }
+                        if(i>0){
+                            insert_sql += ',';
+                        }
+                        insert_sql += ':' + datas[i].target_column_name;
+                    }
+                    insert_sql += ' )';
+                    var select_sql='select ';
+                    var select_tables = new Array();
+                    var select_users = new Array();
+                    var source_data_source='';
+                    for(var i in datas){
+                        if(i>0){
+                            select_sql += ',';
+                        }
+                        if(datas[i].source_column_name==null){
+                            if(datas[i].type==0){
+                                select_sql += 'null as ' + datas[i].target_column_name
+                            }else if(datas[i].type==2){
+                                select_sql += "'" + datas[i].value +"' as " + datas[i].target_column_name
+                            }
+
+                            continue;
+                        }
+                        select_sql += datas[i].source_table_name + '.' + datas[i].source_column_name + ' ' + datas[i].target_column_name;
+                        if ( select_tables.indexOf(datas[i].source_table_name)== -1||select_users.indexOf(datas[i].source_user_name)==-1) {
+                            select_tables.push(datas[i].source_table_name);
+                            select_users.push(datas[i].source_user_name);
+                        }
+                        source_data_source = datas[i].source_data_source;
+                    }
+                    select_sql += ' from ';
+                    if(select_tables.length>0) {
+                        for (var i in select_tables) {
+                            if (i > 0) {
+                                select_sql += ',';
+                            }
+                            select_sql += select_users[i] + '.' + select_tables[i] + ' ' + select_tables[i];
+                        }
+                    }else{
+                        select_sql += 'dual';
+                    }
+                    $('#select_sql').val(select_sql);
+                    $('#insert_sql').val(insert_sql);
+                    $('#select_datasource').val(source_data_source).select2();
+                    $('#insert_datasource').val(datas[0].target_data_source).select2();
+                }
+            },
+            error : function(XMLHttpRequest) {
+                layer.alert(XMLHttpRequest.responseText, {
+                    shade : 0
+                });
+                return false;
+            }
+        });
+    }
+
+    function initDataSourceSelect2() {
+        var url = compileUrl(compileUrl('${rc.contextPath}/hddp/index/refreshDataSource'));
+        var para = {};
+        $.ajax({
+            url: url,
+            data: para,
+            dataType: "json",
+            type: "post",
+            success: function (data) {
+                if (!data.success) {
+                    layer.alert(data.errorMsg);
+                    return false;
+                } else {
+                    var source_list = [], target_list = [];
+                    for (var i = 0; i < data.data.total; i++) {
+                        if (data.data.rows[i].datasource_purpose == '0') {
+                            source_list.push({
+                                id: data.data.rows[i].datasource_id ,
+                                text: data.data.rows[i].datasource_type + '.' + data.data.rows[i].datasource_id
+                            });
+                        }
+                        if (data.data.rows[i].datasource_purpose == '1') {
+                            target_list.push({
+                                id: data.data.rows[i].datasource_id ,
+                                text: data.data.rows[i].datasource_type + '.' + data.data.rows[i].datasource_id
+                            });
+                        }
+                    }
+                    var $insert_datasource = $("#insert_datasource");
+                    if ($insert_datasource.data('select2')) {
+                        $insert_datasource.select2('destroy').empty();
+                    }
+                    $insert_datasource.select2({
+                        placeholder: "-请选择-",
+                        allowClear: true,
+                        data: target_list
+                    });
+                    $select_datasource = $("#select_datasource");
+                    if ($select_datasource.data('select2')) {
+                        $select_datasource.select2('destroy').empty();
+                    }
+                    $select_datasource.select2({
+                        placeholder: "-请选择-",
+                        allowClear: true,
+                        data: source_list
+                    });
+                }
+            },
+            error: function (XMLHttpRequest) {
+                layer.alert(XMLHttpRequest.responseText, {
+                    shade: 0
+                });
+                return false;
+            }
+        });
+    }
+
+    //创建参数table
+    function createTable() {
+        $paramTable.bootstrapTable({
+            striped: true, // 是否显示行间隔色
+            uniqueId: "id",
+            columns: [
+                {
+                    field: 'numberid',//可不加
+                    title: '序号',//标题  可不加
+                    formatter: function (value, row, index) {
+                        return index + 1;
+                    },
+                    width: 50
+                },
+                {
+                    field: 'param_key',
+                    title: '数据元名',
+                    editable: {
+                        type: 'text',
+                        title: '数据元名',
+                        validate: function (v) {
+                            if (!v) return '数据元名不能为空'; //判空
+                        }
+                    }
+                },
+                {
+                    field: 'param_value',
+                    title: '数据元值',
+                    editable: {
+                        type: 'text',
+                        title: '数据元值',
+                        validate: function (v) {
+                            if (!v) return '数据元值不能为空'; //判空
+                        }
+                    }
+                },
+                {
+                    field: 'operate',
+                    title: '操作',
+                    align: 'center',
+                    formatter: operateFormatterRole
+                }
+            ]
+        });
+    }
+
+    function operateFormatterRole(value, row, index) {//赋予的参数
+        return [
+            '<a class="a-default" style="margin-right: 5px;" href="javascript:;" onclick="deleteCurrentRow(\'' + row.id + '\')">删除</a>'
+        ].join('');
+    }
+
+    function deleteCurrentRow(id) {
+        //根据Id字段删除对应的数据
+        $paramTable.bootstrapTable('remove', {field: 'id', values: [id]});
+    }
+
+    function genID(length) {
+        if ($.trim(length) == '') {
+            return Number(Math.random().toString().substr(2) + Date.now()).toString(36);
+        } else {
+            return Number(Math.random().toString().substr(2, length) + Date.now()).toString(36);
+        }
+    }
+
+    //清空
+    function resetDdpSql() {
+        $("#datasource_form")[0].reset();
+        $("#select_datasource").val("").trigger('change');
+        $("#insert_datasource").val("").trigger('change');
+        $paramTable.bootstrapTable('removeAll');
+    }
+
+    //保存
+    function saveDdpSql() {
+        var para = $("#datasource_form").serializeObject();
+        var para_param = $paramTable.bootstrapTable('getData');
+        para["params"] = para_param;
+        $.ajax({
+            url: compileUrl('${rc.contextPath}/ETLTask/saveDdpSql'),
+            data: JSON.stringify(para),
+            dataType: "json",
+            type: "post",
+            contentType: 'application/json;charset=UTF-8;',
+            success: function (data) {
+                if (!data.success) {
+                    layer.alert(data.errorMsg);
+                    return false;
+                } else {
+                    //parent.refreshDataSource();
+                    layer.msg('添加成功');
+                    $('#script_btn').hide();
+                    var index = layer.getFrameIndex(window.name);
+                    layer.close(index);
+                }
+            },
+            error: function (XMLHttpRequest) {
+                layer.alert(XMLHttpRequest.responseText, {
+                    shade: 0
+                });
+                return false;
+            }
+        });
+    }
+
+    jQuery.prototype.serializeObject = function () {
+        var obj = new Object();
+        $.each(this.serializeArray(), function (index, param) {
+            if (!(param.name in obj)) {
+                obj[param.name] = param.value;
+            }
+        });
+        var $radio = $('input[type=radio],input[type=checkbox]', this);
+        $.each($radio, function () {
+            if (!obj.hasOwnProperty(this.name)) {
+                obj[this.name] = '';
+            }
+        });
+        return obj;
+    };
+
+    function createScript() {
+        var para = $("#datasource_form").serializeObject();
+        var para_param = $paramTable.bootstrapTable('getData');
+        para["params"] = para_param;
+        $.ajax({
+            url: compileUrl('${rc.contextPath}/ETLTask/saveDdpSql'),
+            data: JSON.stringify(para),
+            dataType: "json",
+            type: "post",
+            contentType: 'application/json;charset=UTF-8;',
+            success: function (data) {
+                if (!data.success) {
+                    parent.layer.alert(data.errorMsg);
+                    return false;
+                } else {
+                    var id =data.data.id;
+                    var pid = 'createScript';
+                    parent.$.addtabs.add({
+                        'id': pid,
+                        'title': '设置脚本',
+                        'url': compileUrl('${rc.contextPath}/ETLTask/createScriptPage?id='+id),
+                        'refresh': true
+                    });
+                    parent.setTabs(pid);
+                }
+            },
+            error: function (XMLHttpRequest) {
+                layer.alert(XMLHttpRequest.responseText, {
+                    shade: 0
+                });
+                return false;
+            }
+        });
+    }
+    function uploadFile() {
+        var index = layer.open({
+            type: 1,
+            title: '上传Ktr文件',
+            content: '',
+            area: ['300px', '100px'],
+            success: function (layero, index) {
+                $('.layui-layer-content').append('<div><form class="form-horizontal col-sm-11" role="form" style="text-align: center;" id="upload_form" enctype="multipart/form-data">' +
+                    '<div class="col-md-9 "><div class="form-group">\n' +
+                    '                                <input autocomplete="off" type="file" id="upload" name="upload" multiple\n' +
+                    '                                       class="file-loading" data-overwrite-initial="false">\n' +
+                    '                        </div></div>' +
+                    '<div class="col-md-3 "><span class="btn btn-green btn-sm" onclick="saveFile()">提交</span></div></form></div>');
+
+            }
+        })
+    }
+
+    function saveFile() {
+        var url = compileUrl('${rc.contextPath}/ETLTask/uploadKtr');
+        $("#upload_form").ajaxForm({
+            type: 'post',
+            url: url,
+            dataType: 'json',
+            success: function (data) {
+                if (!data.success) {
+                    layer.msg(data.errorMsg);
+                    return false;
+                } else {
+                    layer.msg('上传成功');
+                    $('#filename').val(data.data.filename);
+                    layer.closeAll();
+                }
+            },
+            error: function (XMLHttpRequest) {
+                layer.alert(XMLHttpRequest.responseText, {
+                    shade: 0
+                });
+                return false;
+            }
+        }).submit();
+    }
+</script>
+</html>

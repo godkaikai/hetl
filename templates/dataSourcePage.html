@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>数据源管理</title>
+</head>
+<style>
+	html,body{
+		height: 100%;
+	}
+</style>
+<body>
+	<div class="container-fluid" style="height: 100%;padding: 5px 5px 15px 5px;">
+		<div class="row" style="height: 100%;">
+			<div class="col-md-12" style="height: 100%;">
+				<div class="panel panel-default" style="box-shadow: 0 2px 4px rgba(0, 0, 0, .2);border-radius: 10px;height: 100%;margin-right: 5px;">
+					<div class="panel-heading">
+						数据源列表
+						<div class="heading-btn-group">
+							<!--<button class="btn btn-green btn-sm" onclick="refreshDataSource()">刷新</button>-->
+							<span id="refresh_btn" class="btn btn-green btn-sm glyphicon glyphicon-refresh "> 刷新</span>
+							<span id="add_btn" class="btn btn-green btn-sm glyphicon glyphicon-plus "> 添加</span>
+							<!--<button class="btn btn-green btn-sm" onclick="addDataSource()">添加</button>-->
+						</div>
+					</div>
+					<div class="panel-body">
+						<table class="table table-striped table-tips table-tips-green"
+							id="datasource_table">
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+<script type="text/javascript">
+	$(document).ready(function() {
+		refreshDataSource();
+		$('#refresh_btn').click(function () {
+            refreshDataSource();
+        })
+        $('#add_btn').click(function () {
+            addDataSource();
+        })
+		TableTips();
+	});
+
+	function refreshDataSource() {
+		var url = compileUrl('${rc.contextPath}/hddp/index/refreshDataSource');
+
+		$('#datasource_table').bootstrapTable('destroy');
+		var oTable = new datasourceTable();
+		oTable.init(url);
+	}
+
+	var datasourceTable = function() {
+		var oTemplate = new Object();
+		oTemplate.init = function(url) {
+			$('#datasource_table').bootstrapTable({
+				url : url,
+				method : 'post',
+				contentType : 'application/x-www-form-urlencoded',
+				cache : false,
+				pagination : true,
+				sortable : true,
+				queryParams : {},
+				sidePagination : 'client',
+				pageNumber : 1,
+				pageSize : 10,
+				pageList : [ 10, 25, 50, 100 ],
+				minimumCountColumns : 2,
+				clickToSelect : true,
+				uniqueId : 'id',
+				responseHandler : function(res) {
+					/*return {
+						'total' : res.data.total,
+						'rows' : res.data.rows
+					}*/
+					for(var i in res.data.rows){
+					    if(res.data.rows[i].datasource_purpose==1){
+                            res.data.rows[i].datasource_purpose="目标数据库";
+						}else{
+                            res.data.rows[i].datasource_purpose="源数据库";
+						}
+                        if(res.data.rows[i].datasource_enc==1){
+                            res.data.rows[i].datasource_enc="是";
+                        }else{
+                            res.data.rows[i].datasource_enc="否";
+                        }
+					}
+					return res.data.rows;
+				},
+				columns : [ {
+                    field: 'numberid',//可不加
+                    title: '序号',//标题  可不加
+                    formatter: function (value, row, index) {
+                        return index + 1;
+                    },
+                    width: 50
+                }, {
+                    field: 'id',
+                    title: 'id',
+                    visible: false
+                }, {
+                    field : 'datasource_purpose',
+                    title : '数据源',
+                    sortable: true
+                }, {
+					field : 'datasource_id',
+					title : '数据源编号',
+                    sortable: true
+				}, {
+					field : 'datasource_name',
+					title : '数据源名称',
+                    sortable: true
+				}, {
+					field : 'datasource_type',
+					title : '数据源类型',
+                    sortable: true
+				}, {
+					field : 'datasource_url',
+					title : '数据源地址'
+				}, {
+					field : 'datasource_enc',
+					title : '是否加密'
+				}, {
+					field : 'operate',
+					title : '操作',
+					formatter : operateFormatter
+				} ]
+			});
+		};
+		
+		return oTemplate;
+	};
+
+	function operateFormatter(value, row, index) {
+		var datasource_id = row.datasource_id;
+        var id = row.id;
+		if(datasource_id=='master') {
+            return '请在配置文件中修改';
+        }
+		return [
+				'<a href="javascript:;" class="a-default" onclick="editDataSource(\''
+						+ id + '\')" style="margin-right:5px;">编辑</a>',
+				'<a href="javascript:;" class="a-default" onclick="removeDataSrouce(\''
+						+ datasource_id + '\')" style="margin-right:5px;">删除</a>' ].join('');
+	}
+
+	// 添加数据源
+	function addDataSource() {
+		var url = compileUrl('${rc.contextPath}/hddp/index/addDataSource?type=0');
+		layer.open({
+			type : 2,
+			title : '添加数据源',
+			content : url,
+			area : [ '800px', '550px' ],
+			maxmin : true
+		});
+	}
+	// 删除数据源
+	function removeDataSrouce(datasource_id) {
+        layer.confirm('是否要删除该数据源？', function () {
+            var url = compileUrl('${rc.contextPath}/hddp/index/removeDataSource');
+            var data = {
+                datasource_id: datasource_id
+            };
+            $.ajax({
+                type: 'post',
+                async: false,
+                url: url,
+                data: JSON.stringify(data),
+                dataType: 'json',
+                contentType: 'application/json;charset=UTF-8;',
+                success: function (data) {
+                    if (!data.success) {
+                        layer.alert(data.errorMsg, {
+                            shade: 0
+                        });
+                    } else {
+                        layer.msg('删除成功');
+                        refreshDataSource();
+                    }
+                },
+                error: function (XMLHttpRequest) {
+                    layer.alert(XMLHttpRequest.responseText, {
+                        shade: 0
+                    });
+                }
+            });
+        })
+	}
+	
+	// 编辑数据源
+	function editDataSource(id) {
+		var url = compileUrl('${rc.contextPath}/hddp/index/updateDataSourcePage?id='
+				+ id);
+		layer.open({
+			type : 2,
+			title : '编辑数据源',
+			content : url,
+			area : [ '800px', '650px' ],
+			maxmin : true
+		});
+	}
+</script>
+</html>

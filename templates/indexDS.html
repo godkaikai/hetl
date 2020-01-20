@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <meta charset="utf-8"/>
+    <title>HETL</title>
+    <meta name="description" content=""/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/bootstrap.min.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/iconfont/iconfont.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/bootstrap.addtabs.css') }}"/>
+    <style>
+
+        .tab-content {
+            border: 0;
+        }
+
+        .iconfont {
+            font-family: "iconfont" !important;
+            font-size: 16px;
+            font-style: normal;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .menu-toggler {
+            color: #fff;
+            background-color: inherit;
+            border: none;
+            width: 21px;
+            height: 20px;
+            line-height: 1.3;
+            padding: 0 0 1px;
+            margin-right: 12px;
+        }
+
+        .menu-toggler:hover {
+
+        }
+
+        .logo {
+            width: auto;
+            height: auto;
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        .navbar-flex {
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar-right {
+            position: absolute;
+            right: 0px;
+            top: 0px;
+            margin-right: 0;
+        }
+
+        .circle {
+            width: 100px;
+            height: 100px;
+            background-color: red;
+            border-radius: 50%;
+            -moz-border-radius: 50%;
+            -webkit-border-radius: 50%;
+        }
+
+        .navbar-message {
+            position: relative;
+            top: 8px;
+            left: 0px;
+            width: 15px;
+            height: 15px;
+            padding-top: 2px;
+            line-height: 8px;
+            font-size: 8px;
+            border-radius: 10px;
+            background-color: #d15b47;
+        }
+
+        .nav-list > li {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .nav-list > li > a {
+            font-size: 16px;
+            line-height: 22px;
+        }
+
+        .nav-tabs {
+            border-bottom: none;
+
+        }
+
+        .navbar-shadow {
+            margin: 12px;
+            padding: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .2);
+        }
+
+        .nav-tabs > li > a {
+            border: none;
+            background-color: inherit;
+            color: #999;
+
+        }
+
+        .nav-tabs > li > a:focus {
+            border: none;
+            background-color: inherit;
+            color: #438eb9;
+        }
+
+        .nav-tabs > li.active > a, .nav-tabs > li.active > a:focus, .nav-tabs > li.active > a:hover {
+            color: #0B9284;
+            border: none;
+            background-color: #FFF;
+            z-index: 1;
+            line-height: 18px;
+            margin-top: 0px;
+            box-shadow: none;
+        }
+
+        .close-tab {
+            padding-left: 0px;
+            right: 25px;
+            top: 5px;
+        }
+
+        .no-skin .nav-list > li.active > a, .no-skin .nav-list > li.active > a:focus, .no-skin .nav-list > li.active > a:hover {
+            background-color: #C9DBDE;
+            color: #0B9284;
+        }
+
+        .no-skin .nav-list > li {
+            border: none;
+        }
+
+        .no-skin .nav-list > li > a {
+            padding: 16px 0px 16px 14px;
+            background-color: inherit;
+            color: #535353;
+            height: inherit;
+            font-family: PingFangSC-Medium;
+        }
+
+        .nav-tabs > span > a {
+            text-decoration: none;
+        }
+
+        .nav-tabs > span > a {
+            color: #999;
+        }
+
+        .nav-tabs > span > a:hover {
+            color: #438eb9;
+        }
+
+        .left-hidden {
+            display: none !important;
+        }
+
+        .right-hidden {
+            display: none !important;
+        }
+
+        .sidebar {
+            width: 158px;
+        }
+
+        .sidebar + .main-content {
+            margin-left: 158px;
+        }
+
+        .nav-list > li > a > .menu-icon {
+            vertical-align: inherit;
+            font-size: 24px;
+            margin-right: 10px;
+        }
+
+        .nav-list li.active > a:after {
+            top: 13px;
+        }
+
+        .no-skin .nav-list li.active > a:after {
+            border-right-color: #0B9284;
+        }
+
+        .nav-list > li:before {
+            height: 41px;
+            top: 8px;
+            left: 0;
+            z-index: 1;
+            width: 4px;
+            max-width: 7px;
+            overflow: hidden;
+            background-color: #0B9284;
+        }
+
+        .sidebar.menu-min .nav-list > li > a {
+            position: relative;
+            height: inherit;
+            line-height: 8px;
+            padding: 16px 0px 16px 14px;
+        }
+
+        .sidebar.menu-min .nav-list > li.active > a:after {
+            border-width: 10px 6px;
+            top: 18px;
+        }
+
+        .sidebar.menu-min .nav-list > li > a > .menu-icon {
+            font-size: 24px;
+            height: 16px;
+        }
+
+        .ace-nav {
+            height: 100%;
+            margin: 0 15px 0 0 !important;
+        }
+
+        .navbar-header > .nav > li {
+            border-left: none;
+            padding-right: 0px;
+        }
+
+        .navbar-header > .nav > li:last-child {
+            border-left: none;
+            padding-right: 0px;
+        }
+
+        .navbar {
+            background: #0b9284;
+        }
+
+        .no-skin .nav-list > li.active:after {
+            display: block;
+            content: "";
+            position: absolute;
+            right: -2px;
+            top: -1px;
+            bottom: 0;
+            z-index: 1;
+            border: 2px solid #0B9284;
+            border-width: 0 2px 0 0;
+        }
+
+        .no-skin .nav-list > li:hover > a {
+            background-color: #C9DBDE;
+            color: #0B9284;
+        }
+
+        focus, a:hover {
+            color: #C9DBDE;
+            text-decoration: underline;
+        }
+
+        .sidebar.menu-min .nav-list > li > a {
+            position: relative;
+            height: inherit;
+            line-height: 8px;
+            padding: 20px 0px 20px 0px;
+        }
+
+        .sidebar.menu-min .nav-list > li > .arrow {
+            top: 18px;
+        }
+
+        .sidebar.menu-min .nav-list > li > a.dropdown-toggle > .menu-text {
+            top: 5px;
+            border-width: 1px 1px 0;
+        }
+
+        .main-container:before {
+            display: block;
+            content: "";
+            position: absolute;
+            z-index: -2;
+            width: inherit;
+            max-width: inherit;
+            bottom: 0;
+            top: 0;
+            background-color: #FFF;
+        }
+
+        html {
+            overflow-x: auto;
+            overflow-y: auto;
+        }
+
+        .no-skin .sidebar.menu-min .nav-list > li.active > .arrow:before {
+            border-right-color: #0b9284;
+        }
+
+        a:focus, a:hover {
+            color: #C9DBDE;
+            text-decoration: underline;
+        }
+
+        .nav-tabs > li > a:hover {
+            color: rgb(10, 131, 119);
+            border-color: #C5D0DC;
+        }
+
+        .nav-tabs > span > a:hover {
+            color: rgb(10, 131, 119);
+        }
+
+        .navbar-default .navbar-nav > .active > a, .navbar-default .navbar-nav > .active > a:focus, .navbar-default .navbar-nav > .active > a:hover {
+            background-color: rgba(0, 0, 0, .1) !important;
+            color: #FFF !important;
+        }
+
+        .ace-nav > li.light-green > a:focus, .ace-nav > li.light-green > a:hover, .ace-nav > li.open.light-green > a {
+            background-color: rgba(0, 0, 0, .1) !important;
+            color: #FFF !important;
+        }
+
+        .ace-nav > li.light-green > a {
+            background-color: #0b9284;
+        }
+
+        .dropdown-menu > li.active:hover > a, .dropdown-menu > li.active > a, .dropdown-menu > li:hover > a, .dropdown-menu > li > a:active, .dropdown-menu > li > a:focus {
+            background: #0b9284b3;
+            color: #FFF;
+        }
+
+        .dropdown-navbar .nav-tabs > li.active > a {
+            border-bottom: 2px solid #0b9284 !important;
+            color: #0b9284 !important;
+            background-color: #ecf7ee !important;
+            font-weight: 600;
+        }
+
+        .dropdown-navbar > li.dropdown-footer > a {
+            color: #0b9284 !important;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .dropdown-navbar > li.dropdown-footer > a:hover {
+            color: #C9DBDE;
+            text-decoration: none;
+        }
+
+        .text-ellipsis {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .title-ellipsis {
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .log-title {
+            line-height: 16px;
+            color: #fff;
+            font-size: 16px;
+            position: absolute;
+            left: 62px;
+            top: 6px;
+        }
+
+        #tabs .nav-tabs ul li a {
+            max-width: 200px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .layui-layer{
+            border: 1px solid rgba(0, 0, 0, .1);
+            box-shadow: 1px 1px 5px rgba(0, 0, 0, .2);
+        }
+
+        .page-bottom{
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            height: 30px;
+            background-color: #f5f5f7;
+            box-shadow: 0 -2px 4px rgba(0, 0, 0, .2);
+            border-color: #C5D0DC;
+            text-align: center;
+            padding: 5px;
+        }
+    </style>
+
+    <!-- ace settings handler -->
+    <script src="${rc.contextPath}/static/assets/js/ace-extra.min.js"></script>
+
+    <!-- HTML5shiv and Respond.js for IE8 to support HTML5 elements and media queries -->
+
+    <!--[if lte IE 9]>
+    <script src="${rc.contextPath}/static/assets/js/html5shiv.min.js"></script>
+    <script src="${rc.contextPath}/static/assets/js/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body class="no-skin" style="background-color: #f5f5f7;min-width: 1200px;">
+<div id="navbar" class="navbar navbar-default          ace-save-state">
+    <div class="navbar-container ace-save-state navbar-flex" id="navbar-container">
+        <div class="navbar-header pull-left">
+            <a href="#" class="navbar-brand" style="width: 131px;padding: 0px;margin: 5px 26px 1px 16px;">
+                <img src="{{ url_for('static', filename='image/logo.png') }}" alt="Dareway" class="logo">
+                <span class="log-title">HETL数据引擎</span>
+            </a>
+        </div>
+        <nav role="navigation" class="navbar-menu pull-left collapse navbar-collapse" id="sidebar">
+            <ul class="nav navbar-nav">
+                <li class="">
+                    <a href="#" class="dropdown-toggle" id="welcome" tab-id="welcome" tab-title="主页"
+                       tab-url="/welcome">
+                        <i class="menu-icon glyphicon glyphicon-home"></i>
+                        <span class="menu-text">
+								主页
+							</span>
+                    </a>
+                    <b class="arrow"></b>
+                </li>
+                <li class="">
+                    <a href="#" class="dropdown-toggle" id="dataSourceManage" tab-id="dataSourceManage" tab-title="数据源管理"
+                       tab-url="/hddp/index/dataSourcePage">
+                        <i class="menu-icon iconfont">&#xe6a2;</i>
+                        <span class="menu-text">
+								数据源管理
+							</span>
+                    </a>
+                    <b class="arrow"></b>
+                </li>
+                <li class="">
+                    <a href="#" class="dropdown-toggle" id="dict" tab-id="dict" tab-title="字典映射"
+                       tab-url="/dictmapping/dictMappingPage">
+                        <i class="menu-icon fa iconfont">&#xe6ab;</i>
+                        <span class="menu-text"> 字典映射</span>
+                    </a>
+                    <b class="arrow"></b>
+                </li>
+                <li class="">
+                    <a href="#" class="dropdown-toggle" id="word" tab-id="word" tab-title="字段匹配"
+                       tab-url="/columnmatch/columnMatchPage">
+                        <i class="menu-icon fa iconfont">&#xe6ab;</i>
+                        <span class="menu-text"> 字段匹配</span>
+                    </a>
+                    <b class="arrow"></b>
+                </li>
+                <li class="">
+                    <a href="#" class="dropdown-toggle" id="etltask" tab-id="etltask" tab-title="数据转换"
+                       tab-url="/ETLTask/etlTaskPage">
+                        <i class="menu-icon fa iconfont">&#xe6ab;</i>
+                        <span class="menu-text"> 即时任务</span>
+                    </a>
+                    <b class="arrow"></b>
+                </li>
+                <li class="">
+                    <a href="#" class="dropdown-toggle" id="scheduledManage" tab-id="scheduledManage" tab-title="定时任务管理"
+                       tab-url="/scheduled/scheduledPage">
+                        <i class="menu-icon iconfont">&#xe6ad;</i>
+                        <span class="menu-text"> 定时任务</span>
+                    </a>
+                    <b class="arrow"></b>
+                </li>
+                <li class="">
+                    <a href="#" class="dropdown-toggle" id="log" tab-id="log" tab-title="日志查询"
+                       tab-url="/Log/logIndex">
+                        <i class="menu-icon fa iconfont">&#xe6ab;</i>
+                        <span class="menu-text"> 日志查询</span>
+                    </a>
+                    <b class="arrow"></b>
+                </li>
+                <!--<li class="">
+                    <a href="#" class="dropdown-toggle" id="javacode" tab-id="javacode" tab-title="代码编译"
+                       tab-url="/javacode/javaCodePage">
+                        <i class="menu-icon fa iconfont">&#xe6ab;</i>
+                        <span class="menu-text"> 代码编译</span>
+                    </a>
+                    <b class="arrow"></b>
+                </li>
+                <li class="">
+                    <a href="#" class="dropdown-toggle" id="runetl" tab-id="runetl" tab-title="ETL工作"
+                       tab-url="/etl/etlPage">
+                        <i class="menu-icon fa iconfont">&#xe6ab;</i>
+                        <span class="menu-text"> ETL工作</span>
+                    </a>
+                    <b class="arrow"></b>
+                </li>-->
+                <!--<li class="">
+                    <a href="#" class="dropdown-toggle" id="serviceLog" tab-id="serviceLog" tab-title="日志分析"
+                       tab-url="/manage/logmanage/logIndex">
+                        <i class="menu-icon fa iconfont">&#xe6ab;</i>
+                        <span class="menu-text"> 日志分析</span>
+                    </a>
+                    <b class="arrow"></b>
+                </li>
+                <li class="">
+                    <a href="#" class="dropdown-toggle" id="serviceInvocation" tab-id="serviceInvocation" tab-title="日志查询"
+                       tab-url="/manage/monitormanage/listServiceDispatchRes">
+                        <i class="menu-icon glyphicon glyphicon-search"></i>
+                        <span class="menu-text"> 日志查询</span>
+                    </a>
+                    <b class="arrow"></b>
+                </li>-->
+            </ul>
+        </nav>
+        <div class="navbar-buttons navbar-header pull-right  collapse navbar-collapse navbar-right" role="navigation">
+            <ul class="nav ace-nav">
+                <!--<li class="transparent dropdown-modal">
+                    <a data-toggle="dropdown" href="#" class="dropdown-toggle" class="logo" id="news_btn">
+                        <img src="${rc.contextPath}/static/assets/images/icon_notice.png" alt="消息"
+                             style="max-height: 23px;max-width: 18px;">
+                        <span class="pull-right navbar-message badge-warning">
+                        <span style="width: 9px;height: 11px;line-height: 11px;font-family: PingFangSC-Regular;"
+                              id="total_nums">0</span>
+                        </span>
+                    </a>
+                    <div class="dropdown-menu-right dropdown-navbar dropdown-menu dropdown-caret dropdown-close"
+                         style="box-shadow: 0 2px 4px rgba(0,0,0,.2);border-radius: 5px!important;padding: 1px;">
+                        <div class="tabbable">
+                            <ul class="nav nav-tabs">
+                                <li class="active">
+                                    <a data-toggle="tab" href="#navbar-tasks">
+                                        任务
+                                        <span class="badge badge-danger" id="task_nums">4</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a data-toggle="tab" href="#navbar-messages">
+                                        新闻
+                                        <span class="badge badge-danger" id="news_nums">5</span>
+                                    </a>
+                                </li>
+                            </ul>&lt;!&ndash; .nav-tabs &ndash;&gt;
+                            <div class="tab-content">
+                                <div id="navbar-tasks" class="tab-pane in active">
+                                    <ul class="dropdown-menu-right dropdown-navbar dropdown-menu">
+                                        <li class="dropdown-content">
+                                            <ul class="dropdown-menu dropdown-navbar" id="task_list">
+                                            </ul>
+                                        </li>
+                                        <li class="dropdown-footer">
+                                            <a href="#" onclick="openAllNews('task')">
+                                                查看全部任务详情
+                                                <i class="ace-icon fa fa-arrow-right"></i>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>&lt;!&ndash; /.tab-pane &ndash;&gt;
+                                <div id="navbar-messages" class="tab-pane">
+                                    <ul class="dropdown-menu-right dropdown-navbar dropdown-menu">
+                                        <li class="dropdown-content">
+                                            <ul class="dropdown-menu dropdown-navbar" id="news_list">
+                                            </ul>
+                                        </li>
+                                        <li class="dropdown-footer">
+                                            <a href="#" onclick="openAllNews('news')">
+                                                查看全部新闻
+                                                <i class="ace-icon fa fa-arrow-right"></i>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>&lt;!&ndash; /.tab-pane &ndash;&gt;
+                            </div>&lt;!&ndash; /.tab-content &ndash;&gt;
+                        </div>&lt;!&ndash; /.tabbable &ndash;&gt;
+                    </div>&lt;!&ndash; /.dropdown-menu &ndash;&gt;
+                </li>-->
+                <li class="light-green dropdown-modal user-min ">
+                    <a data-toggle="dropdown" href="#" class="dropdown-toggle" aria-expanded="false"
+                       style="font-size: 16px;padding: 0 12px;">
+                        欢迎您，${user_name!''}
+                        <span class="iconfont" style="font-size: 12px;">&#xe6a8;</span>
+                    </a>
+                    <ul class="dropdown-menu-right dropdown-menu dropdown-caret dropdown-close ">
+                        <li>
+                            <a href="#">
+                                个人信息
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                设置
+                            </a>
+                        </li>
+                        <li>
+                            <a href="./login/cancel">
+                                <span class="iconfont" style="font-size: 12px;">&#xe6a5;</span>
+                                注销
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div><!-- /.navbar-container -->
+</div>
+<div class="main-container ace-save-state" id="main-container">
+    <div class="main-content">
+        <div class="main-content-inner">
+            <div id="tabs" style="background-color: #f5f5f7;">
+                <!-- Nav tabs -->
+                <div style="margin: 0px 12px;background-color: #f5f5f7;padding: 2px 10px;"
+                     class="nav nav-tabs navbar-shadow" id="nav-tabs">
+						<span class="iconfont" style="float:left;margin: 5px 10px 0px 5px;">
+						<a href="#" class="dropdown-toggle" onclick="moveTab(1)">&#xe6af;
+						</a></span>
+                    <ul class="nav nav-tabs" role="tablist" style="display:inline-block;font-size: 16px;">
+                    </ul>
+                    <span class="iconfont" style="float:right;margin: 5px 5px 0px 10px;">
+						<a href="#" class="dropdown-toggle" onclick="moveTab(0)">&#xe6a4;
+						</a>
+						</span>
+                </div>
+                <!-- Tab panes -->
+                <div class="tab-content" id="tab-content" style="overflow-x:hidden;overflow-y:auto;">
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /.main-content -->
+</div><!-- /.main-container -->
+<div class="page-bottom"><span>©2020 Dareway 山大地纬健康科技股份有限公司</span></div>
+<script src="{{ url_for('static', filename='assets/js/jquery-1.11.3.min.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='webjars/layer/3.1.1/dist/layer.js') }}"></script>
+{#<script src="{{ url_for('static', filename='assets/js/bootstrap.min.js') }}${rc.contextPath}/static/assets/js/bootstrap.min.js"></script>
+<script src="{{ url_for('static', filename='assets/css/bootstrap.min.css') }}${rc.contextPath}/static/assets/js/ace-elements.min.js"></script>
+<script src="{{ url_for('static', filename='assets/css/bootstrap.min.css') }}${rc.contextPath}/static/assets/js/ace.min.js"></script>#}
+<script src="{{ url_for('static', filename='assets/js/bootstrap.addtabs.min.js') }}"></script>
+{#
+<script type="text/javascript" src="{{ url_for('static', filename='assets/css/bootstrap.min.css') }}${rc.contextPath}/webjars/framework/js/common.js"></script>
+#}
+<script type="text/javascript">
+    window.addEventListener('message', function(event) {
+        top.location.href = '/login';
+    }, false);
+</script>
+<script type="text/javascript">
+    var tbheight = $('.nav-tabs').height();
+
+    $(function () {
+        resizeTabs();
+        $('#sidebar ul li a').click(function () {
+            var tab_id = $(this).attr('tab-id'),
+                title = $(this).attr('tab-title'),
+                url = '${rc.contextPath}' + $(this).attr('tab-url');
+            var k = false;
+            $('#sidebar li').removeClass('active');
+            $(this).parent().addClass('active');
+            $('#tabs ul li').each(function () {
+                var liid = $(this).attr('id'),
+                    elid = 'tab_tab_' + tab_id;
+                if (liid == elid) {
+                    $(this).find('a').click();
+                    k = true;
+                    setTabs(tab_id);
+                }
+            })
+            $('#tabs .nav-tabs ul .close-tab').hide();
+            if (k) {
+                return;
+            }
+            var id = tab_id;
+            $.addtabs.add({
+                'id': tab_id,
+                'title': title,
+                'url': compileUrl(url),
+                'refresh': true
+            });
+            setTabs(id);
+            $(document.getElementById('tab_tab_' + tab_id)).find('i').click(function () {
+                $(document.getElementById('' + tab_id)).parent().removeClass('active');
+            })
+        })
+        $('#welcome').click();
+        $('#tab_tab_welcome .close-tab').remove();
+        //refreMessage();
+        //setInterval(refreMessage, 300000);
+    });
+
+    $.addtabs.set({
+        'iframe': true,
+        close: true,
+        target: '#nav-tabs',
+        callback: function () {
+            var hidden_length = $('#tabs .nav-tabs ul li:hidden').length;
+            if (hidden_length > 0) {
+                $('#tabs > div > span').show();
+            } else {
+                $('#tabs > div > span').hide();
+            }
+        }
+    });
+
+    function resizeTabs() {
+        $(window).resize(function () {
+            var hidden_length = $('#tabs .nav-tabs ul li:hidden').length;
+            if (hidden_length > 0) {
+                $('#tabs > div > span').show();
+            } else {
+                $('#tabs > div > span').hide();
+            }
+            var newtbheight = $('#tabs').find('.nav-tabs').height() - 8;
+            if (newtbheight > tbheight) {
+                var atab_index = $('#tabs .nav-tabs ul .active').index();
+                if (atab_index == 0) {
+                    moveTab(1);
+                } else {
+                    moveTab(0);
+                }
+            } else {
+
+                var divlength = $('#tabs').find('.nav-tabs').width(),
+                    spanlength_left = $('#tabs').find('.nav-tabs span').eq(0).outerWidth(true),
+                    spanlength_right = $('#tabs').find('.nav-tabs span').eq(1).outerWidth(true),
+                    tablength = divlength - spanlength_left - spanlength_right,
+                    ullength = $('#tabs').find('.nav-tabs ul').outerWidth(true),
+                    right_hidden = $('#tabs .nav-tabs ul .right-hidden').length,
+                    left_hidden = $('#tabs .nav-tabs ul .left-hidden').length,
+                    rightfirst_length = 0,
+                    leftlast_length = 0;
+                if (right_hidden > 0) {
+                    $('#tabs').find('.nav-tabs ul .right-hidden:first').removeClass('right-hidden');
+                    rightfirst_length = $('#tabs').find('.nav-tabs ul li:visible:last').outerWidth(true);
+                    $('#tabs').find('.nav-tabs ul li:visible:last').attr("class", 'right-hidden');
+                }
+                if (left_hidden > 0) {
+                    $('#tabs').find('.nav-tabs ul .left-hidden:last').removeClass('left-hidden');
+                    leftlast_length = $('#tabs').find('.nav-tabs ul li:visible:first').outerWidth(true);
+                    $('#tabs').find('.nav-tabs ul li:visible:first').attr("class", 'left-hidden');
+                }
+                if (rightfirst_length != 0 && leftlast_length != 0) {
+                    if (rightfirst_length < leftlast_length) {
+                        if (rightfirst_length + ullength < tablength) {
+                            $('#tabs').find('.nav-tabs ul .right-hidden:first').removeClass('right-hidden');
+                        }
+                    } else {
+                        if (leftlast_length + ullength < tablength) {
+                            $('#tabs').find('.nav-tabs ul .left-hidden:last').removeClass('left-hidden');
+                        }
+                    }
+                } else if (rightfirst_length == 0 && leftlast_length != 0) {
+                    if (leftlast_length + ullength < tablength) {
+                        $('#tabs').find('.nav-tabs ul .left-hidden:last').removeClass('left-hidden');
+                    }
+                } else if (rightfirst_length != 0 && leftlast_length == 0) {
+                    if (rightfirst_length + ullength < tablength) {
+                        $('#tabs').find('.nav-tabs ul .right-hidden:first').removeClass('right-hidden');
+                    }
+                } else {
+                }
+            }
+        });
+    }
+
+    function moveTab(e) {
+        var divlength = $('#tabs').find('.nav-tabs').width(),
+            spanlength_left = $('#tabs').find('.nav-tabs span').eq(0).outerWidth(true),
+            spanlength_right = $('#tabs').find('.nav-tabs span').eq(1).outerWidth(true),
+            tablength = divlength - spanlength_left - spanlength_right,
+            ullength = $('#tabs').find('.nav-tabs ul').outerWidth(true),
+            right_hidden = $('#tabs .nav-tabs ul .right-hidden').length,
+            left_hidden = $('#tabs .nav-tabs ul .left-hidden').length;
+        if (e == 1) {
+            if ((left_hidden == 0 && ullength > tablength) || left_hidden > 0) {
+                $('#tabs').find('.nav-tabs ul li:visible:last').attr("class", 'right-hidden');
+                $('#tabs').find('.nav-tabs ul .left-hidden:last').removeClass('left-hidden');
+            }
+        } else {
+            var l = $('#tabs').find('.nav-tabs ul li:visible').length;
+            if ((right_hidden == 0 && ullength > tablength) || right_hidden > 0) {
+                $('#tabs').find('.nav-tabs ul li:visible:first').attr("class", 'left-hidden');
+                $('#tabs').find('.nav-tabs ul .right-hidden:first').removeClass('right-hidden');
+                ullength = $('#tabs').find('.nav-tabs ul').outerWidth(true);
+                while (ullength > tablength) {
+                    $('#tabs').find('.nav-tabs ul li:visible:first').attr("class", 'left-hidden');
+                    $('#tabs').find('.nav-tabs ul .right-hidden:first').removeClass('right-hidden');
+                    ullength = $('#tabs').find('.nav-tabs ul').outerWidth(true);
+                }
+            }
+        }
+    }
+
+    function setTabs(tab_id) {
+        $('#tabs > div > span').show();
+        var ishidden = $(document.getElementById('tab_tab_' + tab_id)).is(':hidden'),
+            tab_index = $(document.getElementById('tab_tab_' + tab_id)).index();
+        if (ishidden) {
+            var left_hidden = $('#tabs .nav-tabs ul .left-hidden').length,
+                type = tab_index >= left_hidden ? true : false;
+            if (!type) {
+                k = left_hidden - tab_index;
+                for (var i = 0; i < k; i++) {
+                    moveTab(1);
+                }
+            } else if (type) {
+                var visible_length = $('#tabs .nav-tabs ul li:visible').length,
+                    k = tab_index - left_hidden - visible_length;
+                for (var i = 0; i < k; i++) {
+                    moveTab(0);
+                }
+            } else {
+                var atab_index = $('#tabs .nav-tabs ul .active').index(),
+                    tab_total = $('#tabs .nav-tabs ul li').length,
+                    k = tab_total - atab_index;
+                for (var i = 0; i < k; i++) {
+                    moveTab(0);
+                }
+                moveTab(0);
+            }
+        } else {
+            var atab_index = $('#tabs .nav-tabs ul .active').index(),
+                right_hidden = $('#tabs .nav-tabs ul .right-hidden').length,
+                tab_total = $('#tabs .nav-tabs ul li').length,
+                k = right_hidden;
+            if (atab_index + 1 == tab_total) {
+                for (var i = 0; i < k + 1; i++) {
+                    moveTab(0);
+                }
+                $('#tabs .nav-tabs ul .active .close-tab').click(function () {
+                    var right_hidden = $('#tabs .nav-tabs ul .right-hidden').length,
+                        left_hidden = $('#tabs .nav-tabs ul .left-hidden').length;
+                    if (right_hidden > 0) {
+                        $('#tabs').find('.nav-tabs ul .right-hidden:first').removeClass('right-hidden');
+                    } else if (left_hidden > 0) {
+                        $('#tabs').find('.nav-tabs ul .left-hidden:last').removeClass('left-hidden');
+                    }
+                })
+            } else {
+            }
+        }
+        var hidden_length = $('#tabs .nav-tabs ul li:hidden').length;
+        if (hidden_length > 0) {
+            $('#tabs > div > span').show();
+        } else {
+            $('#tabs > div > span').hide();
+        }
+    }
+
+    /*function refreMessage() {
+        new AjaxRequest(
+            compileUrl("${rc.contextPath}/iNotification/getUnCompleteNotificationList"),
+            null, function (data) {
+                $('#task_list').empty();
+                $('#news_list').empty();
+                if (data.tasklist.length == 0 && data.newslist.length == 0) {
+                    $('#total_nums').parent().hide();
+                } else {
+                    $('#total_nums').parent().show();
+                    $('#total_nums').text(data.tasklist.length + data.newslist.length);
+                }
+                if (data.tasklist.length > 0) {
+                    $('#task_nums').show();
+                    $('#task_nums').text(data.tasklist.length);
+                    for (var i = 0; i < data.tasklist.length; i++) {
+                        var task_html = '<li>\n' +
+                            '                                                    <a href="#">\n' +
+                            '                                                        <div class="clearfix">\n' +
+                            '                                                            <span class="pull-left title-ellipsis" style="color: #0b9284;width: 110px;">' + data.tasklist[i].notification_title + '</span>\n' +
+                            '                                                            <span class="pull-left title-ellipsis" style="color: #0b9284;width: 50px;">【' + data.tasklist[i].source_user_name + '】</span>\n' +
+                            '                                                            <span class="pull-right">' + data.tasklist[i].published_time.substr(11) + '</span>\n' +
+                            '                                                        </div>\n' +
+                            '                                                        <div style="padding-top: 10px;">\n' +
+                            '                                                            <span class="text-ellipsis">&emsp;&emsp;' + data.tasklist[i].notification_content + '</span>\n' +
+                            '                                                        </div>\n' +
+                            '                                                    </a>\n' +
+                            '                                                </li>';
+                        $('#task_list').append(task_html);
+                    }
+                    $('#task_list li').each(function (index) {
+                        $(this).find('a').click(function () {
+                            var id = data.tasklist[index].notification_id;
+
+                            $.addtabs.add({
+                                'id': id,
+                                'title': '任务管理',
+                                'url': compileUrl("${rc.contextPath}/taskPoint.do?notification_id=" + id),
+                                'refresh': true
+                            });
+                            setTabs(id);
+                        })
+                    })
+                } else {
+                    $('#task_nums').hide();
+                }
+                if (data.newslist.length > 0) {
+                    $('#news_nums').show();
+                    $('#news_nums').text(data.newslist.length);
+                    for (var i = 0; i < data.newslist.length; i++) {
+                        var news_html = '<li>\n' +
+                            '                                                    <a href="#">\n' +
+                            '                                                        <div class="clearfix">\n' +
+
+                            '                                                            <label style="display: none;">' + data.newslist[i].notification_id + '</label>\n' +
+                            '                                                            <span class="pull-left title-ellipsis" style="color: #0b9284;width: 110px;">' + data.newslist[i].notification_title + '</span>\n' +
+                            '                                                            <span class="pull-left title-ellipsis" style="color: #0b9284;width: 50px;">【' + data.newslist[i].source_user_name + '】</span>\n' +
+                            '                                                            <span class="pull-right">' + data.newslist[i].published_time.substr(11) + '</span>\n' +
+                            '                                                        </div>\n' +
+                            '                                                        <div style="padding-top: 10px;">\n' +
+                            '                                                            <span class="text-ellipsis">&emsp;&emsp;' + data.newslist[i].notification_content + '</span>\n' +
+                            '                                                        </div>\n' +
+                            '                                                    </a>\n' +
+                            '                                                </li>';
+                        $('#news_list').append(news_html);
+                    }
+                    $('#news_list li').each(function () {
+                        $(this).find('a').click(function () {
+                            var id = $(this).find('label').text();
+                            var height = $('body').height() < 600 ? $('body').height() : 600;
+                            layer.open({
+                                type: 2,
+                                area: ['1200px', height + 'px'],
+                                title: ['新闻详情', 'font-size:18px;font-weight: bold;'],
+                                shade: 0.6,
+                                maxmin: false,
+                                anim: 0,
+                                content: compileUrl('${rc.contextPath}/iNotification/showNotificationInfoPage?notification_id=' + id),
+                                success: function () {
+                                    parent.refreMessage();
+                                }
+                            });
+                        })
+                    })
+                } else {
+                    $('#news_nums').hide();
+                }
+            }).execute();
+    }
+
+    function openAllNews(notification_type) {
+        var id = 'messagemanage';
+        $.addtabs.add({
+            'id': id,
+            'title': '通知管理',
+            'url': compileUrl('${rc.contextPath}/iNotification/listNewsPage?notification_type=' + notification_type),
+            'refresh': true
+        });
+        setTabs(id);
+    }
+    //pre文本全选
+    function selectText(element) {
+        var text = document.getElementById(element);
+        if (document.body.createTextRange) {
+            var range = document.body.createTextRange();
+            range.moveToElementText(text);
+            range.select();
+        } else if (window.getSelection) {
+            var selection = window.getSelection();
+            var range = document.createRange();
+            range.selectNodeContents(text);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            /!*if(selection.setBaseAndExtent){
+                selection.setBaseAndExtent(text, 0, text, 1);
+            }*!/
+        } else {
+        }
+    }*/
+    /*function selectAllOnkeydown() {
+        document.onkeydown = function(event){
+            event = event || window.event; //IE suckes
+            if ( event.keyCode == 65 && event.ctrlKey ) {
+                selectText('result_json');
+            }
+
+        }
+    }*/
+</script>
+</body>
+</html>

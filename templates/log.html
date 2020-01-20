@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>日志</title>
+    <#include "${rc.contextPath}/framework/importFile.html"/>
+</head>
+<style>
+    html, body {
+        height: 100%;
+    }
+</style>
+<body>
+<div class="container-fluid" style="height: 100%;padding: 5px 5px 15px 5px;">
+    <div class="row" style="height: 100%;">
+        <div class="col-md-12" style="height: 100%;">
+            <div class="panel panel-default"
+                 style="box-shadow: 0 2px 4px rgba(0, 0, 0, .2);border-radius: 10px;height: 100%;margin-right: 5px;">
+                <div class="panel-heading">
+                    日志列表
+                    <!--<div class="heading-btn-group">
+
+                    </div>-->
+                </div>
+                <div class="panel-body">
+                    <div class=" btn-toolbar toolbar" role="toolbar" style="float:left;width: 80%;">
+                        <!--<span id="all_btn" class="btn btn-green btn-sm glyphicon glyphicon-th "> 全部</span>
+                        <span id="add_btn" class="btn btn-green btn-sm glyphicon  glyphicon-cog "> 管理</span>-->
+                        <label for="log_type" class="control-label col-xs-1 ">日志级别</label>
+                        <div class="col-xs-1">
+                            <select id="log_type" name="log_type" class="js-example-templating js-states form-control">
+                                <option></option>
+                            </select>
+                        </div>
+                        <label for="thread" class="control-label col-xs-1 ">线程名称</label>
+                        <div class="col-xs-1">
+                            <input id="thread" name="thread" class="form-control" type="text"/>
+                        </div>
+                        <label for="start_date" class="control-label col-xs-1 ">起始日期</label>
+                        <div class="col-xs-2">
+                            <input type="text" id="start_date" name="start_date" class="form-control"/>
+                        </div>
+                        <label for="end_date" class="control-label col-xs-1 ">终止日期</label>
+                        <div class="col-xs-2">
+                            <input type="text" id="end_date" name="end_date" class="form-control"/>
+                        </div>
+                        <span id="refresh_btn" class="btn btn-green btn-sm glyphicon glyphicon-search "> 搜索</span>
+                    </div>
+                    <table class="table table-striped table-tips table-tips-green" id="log_table">
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script type="text/javascript">
+    $(function () {
+        var $select = $("#log_type");
+        if ($select.data('select2')) {
+            $select.select2('destroy').empty();
+        }
+        $("#log_type").select2({
+            placeholder: "-请选择-",
+            allowClear: true,
+            data: [{id: 'INFO', text: 'INFO'},
+                {id: 'WARN', text: 'WARN'},
+                {id: 'ERROR', text: 'ERROR'}]
+        });
+        $("#log_type").val('INFO').select2();
+        var currentDate = new Date();
+        var startdate = laydate.render({
+            elem: '#start_date',
+            trigger: 'click',
+            type: 'datetime',
+            theme: '#0b9284',
+            min: getDate(currentDate, 0)
+            //max: 'currentDate'
+        });
+        var enddate = laydate.render({
+            elem: '#end_date',
+            trigger: 'click',
+            type: 'datetime',
+            theme: '#0b9284',
+            min: getDate(currentDate, 0)
+            // max: 'currentDate'
+        });
+        var maxdate = getDate(currentDate, 1);
+        $('#start_date').val(maxdate);
+        $('#end_date').val(maxdate);
+        refreshLog();
+        /*$('#all_btn').click(function () {
+            refreshLog();
+        })
+        $('#add_btn').click(function () {
+        })*/
+        $('#refresh_btn').click(function () {
+            refreshLog();
+        })
+        offTableTips([6]);
+    });
+
+    function getDate(currentDate, value) {
+        //获取当前年
+        var year = currentDate.getFullYear();
+        //获取当前月
+        var month = currentDate.getMonth() + value;
+        if (month < 10) {
+            month = "0" + month;
+        }
+        //获取当前日
+        var date = currentDate.getDate();
+        if (date < 10) {
+            date = "0" + date;
+        }
+        var h = currentDate.getHours(); //获取当前小时数(0-23)
+        if (h < 10) {
+            h = "0" + h;
+        }
+        var m = currentDate.getMinutes(); //获取当前分钟数(0-59)
+        var m = currentDate.getHours(); //获取当前小时数(0-23)
+        if (m < 10) {
+            m = "0" + m;
+        }
+        var s = currentDate.getSeconds();
+        if (s < 10) {
+            s = "0" + s;
+        }
+        var now = year + '-' + month + "-" + date + " " + h + ':' + m + ":" + s;
+        return now;
+    }
+
+    function refreshLog() {
+        var start_date = $('#start_date').val();
+        var end_date = $('#end_date').val();
+        var log_type = $('#log_type').val();
+        var thread = $('#thread').val();
+        if (new Date(start_date.replace(/-/g,'/')).getTime() >new Date(end_date.replace(/-/g,'/')).getTime()) {
+            layer.msg('起始日期大于终止日期！');
+            return;
+        }
+        var url = compileUrl('${rc.contextPath}/Log/getLogListByFile');
+        var para = {
+            start_date: start_date,
+            end_date: end_date,
+            log_type:log_type,
+            thread:thread
+        };
+        $('#log_table').bootstrapTable('destroy');
+        var panel_height = $('#log_table').closest('.panel').height();
+        var panel_head = $('#log_table').closest('.panel').find('.panel-heading').height();
+        var panel_body = panel_height - panel_head;
+        var table_hight = panel_body - 30;
+        $('#log_table').bootstrapTable({
+            url: url,
+            method: 'post',
+            contentType: 'application/x-www-form-urlencoded',
+            cache: false,
+            pagination: true,
+            sortable: true,
+            queryParams: para,
+            sidePagination: 'client',
+            pageNumber: 1,
+            pageSize: 10,
+            pageList: [10, 25, 50, 100],
+            minimumCountColumns: 2,
+            clickToSelect: true,
+            search: true,
+            height: table_hight,
+            uniqueId: 'id',
+            onClickRow: function (row) {
+                initDetal(row.context,row.thread+"的日志详情");
+            },
+            responseHandler: function (res) {
+                return res.data;
+            },
+            columns: [/*{
+                checkbox: true
+            },*/ {
+                field: 'numberid',//可不加
+                title: '序号',//标题  可不加
+                formatter: function (value, row, index) {
+                    return index + 1;
+                },
+                width: 50
+            }, {
+                field: 'id',
+                title: '日志编号',
+                sortable: true
+            }, {
+                field: 'thread',
+                title: '线程名称',
+                sortable: true
+            }, {
+                field: 'type',
+                title: '日志级别',
+                sortable: true
+            }, {
+                field: 'date',
+                title: '日志时间',
+                sortable: true
+            }, {
+                field: 'class',
+                title: '日志类',
+                sortable: true
+            }, {
+                field: 'context',
+                title: '日志内容',
+                sortable: true
+            }
+                /*, {
+                    field : 'operate',
+                    title : '操作',
+                    formatter : function (value, row, index) {
+                        var id = row.id;
+                        return [
+                            '<a href="javascript:;" class="a-default" onclick="editDictMapping(\''
+                            + id + '\')" style="margin-right:5px;">编辑</a>',
+                            '<a href="javascript:;" class="a-default" onclick="removeDictMapping(\''
+                            + id + '\')" style="margin-right:5px;">删除</a>' ].join('');
+                    }
+                } */
+            ]
+        });
+    };
+
+    function initDetal(value,title) {
+        var isJson = true;
+        try {
+            value = JSON.parse(value);
+        } catch (err) {
+            isJson = false;
+        }
+        var html;
+        if (isJson) {
+            html = '<pre id="result_json" style="height: 440px;text-align: left;">' + JSON.stringify(value, null, 2) + '</pre>';
+        } else {
+            html = '<pre id="result_json" style="height: 440px;text-align: left;">' + value + '</pre>';
+        }
+        parent.layer.open({
+            type: 1,
+            title: title + '详细',
+            content: html,
+            area: ['800px', '500px'],
+            shade: 0.01,
+            maxmin: false,
+            success: function (layero, index) {
+                parent.$('#result_json').dblclick(function () {
+                    parent.selectText('result_json');
+                })
+            }
+        })
+    }
+</script>
+</html>

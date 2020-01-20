@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>添加数据源</title>
+<#include "${rc.contextPath}/framework/importFile.html"/>
+</head>
+<body>
+	<div class="panel panel-default">
+		<div class="panel-body">
+			<form class="form-horizontal" id="datasource_form"
+				enctype="multipart/form-data">
+				<div class="form-group">
+					<label class="col-xs-3 control-label"></label>
+					<div class="col-xs-9">
+						<label class="radio-inline">
+							<input type="radio" name="datasource_purpose" id="optionsRadios1" value="0" > 源库
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="datasource_purpose" id="optionsRadios2"  value="1"> 目标库
+						</label>
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="datasource_type" class="col-xs-3 control-label">数据源类型</label>
+					<div class="col-xs-9">
+						<select id="datasource_type" name="datasource_type"
+							class="js-example-templating js-states form-control"
+							onchange="setDriver()">
+						</select>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label">数据源驱动</label>
+					<div class="col-xs-9">
+						<input class="form-control" type="text" id="datasource_driver" name="datasource_driver"
+							autocomplete="off" readonly="readonly">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label required">数据源编号</label>
+					<div class="col-xs-9">
+						<input class="form-control" type="text" id="datasource_id" name="datasource_id"
+							autocomplete="off">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label required">数据源名称</label>
+					<div class="col-xs-9">
+						<input class="form-control" type="text" id="datasource_name" name="datasource_name"
+							autocomplete="off">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label required">数据源地址</label>
+					<div class="col-xs-9">
+						<input class="form-control" type="text" id="datasource_url" name="datasource_url"
+							autocomplete="off">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label required">用户名</label>
+					<div class="col-xs-9">
+						<input class="form-control" type="text" id="datasource_username" name="datasource_username"
+							autocomplete="off">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label required">密码</label>
+					<div class="col-xs-9">
+						<input class="form-control" type="password" id="datasource_password" name="datasource_password"
+							autocomplete="off">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label">是否加密</label>
+					<div class="col-xs-3">
+						<input type="checkbox" id="datasource_enc" name="datasource_enc">
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="pull-right">
+						<span class="btn btn-green btn-sm" onclick="saveDataSource()">保存</span>
+						<a class="btn btn-green btn-sm" onclick="resetDataSource()">清空</a>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+</body>
+<script type="text/javascript">
+	$(document).ready(function() {
+		var para = [ 'ORACLE', 'MYSQL', 'POSTGRE' ];
+        var type = '${type!""}';
+		$("#datasource_type").select2({
+			data : para
+		});
+		setDriver();
+        if(type=='0'||type=='1'){
+            $("#optionsRadios2").prop("checked",true);
+        }else if(type=='2'){
+            $("#optionsRadios1").prop("checked",true);
+        }else{}
+	});
+
+	function setDriver() {
+		var type = $("#datasource_type").val();
+
+		if (type == 'ORACLE') {
+			$('input[name="datasource_driver"]')
+					.val('oracle.jdbc.OracleDriver');
+		} else if (type == 'MYSQL') {
+			$('input[name="datasource_driver"]').val('com.mysql.jdbc.Driver');
+		} else if (type == 'POSTGRE') {
+			$('input[name="datasource_driver"]').val('org.postgresql.Driver');
+		}
+	}
+
+	function saveDataSource() {
+		var url = compileUrl('${rc.contextPath}/hddp/index/saveDataSource');
+		//var para = $('#datasource_form').serialize();
+        var enc;
+        var encIsChecked = $('#datasource_enc').is(":checked");
+        if (encIsChecked){
+        	enc = 1;
+        }else {
+        	enc = 0;
+        }
+        var para = {
+            datasource_purpose:$('input:radio:checked').val(),
+            datasource_type: $('#datasource_type').val(),
+            datasource_driver: $('#datasource_driver').val(),
+            datasource_id: $('#datasource_id').val(),
+            datasource_name: $('#datasource_name').val(),
+            datasource_url: $('#datasource_url').val(),
+            datasource_username: $('#datasource_username').val(),
+            datasource_password: $('#datasource_password').val(),
+            datasource_enc:enc
+        }
+		$.ajax({
+			url : url,
+			data : JSON.stringify(para),
+			dataType : "json",
+			type : "post",
+            contentType: 'application/json;charset=UTF-8;',
+			success : function(data) {
+				if (!data.success) {
+					parent.layer.alert(data.errorMsg);
+					return false;
+				} else {
+					parent.refreshDataSource();
+					parent.layer.msg('添加成功');
+					var index = parent.layer.getFrameIndex(window.name);
+					parent.layer.close(index);
+				}
+			},
+			error : function(XMLHttpRequest) {
+				layer.alert(XMLHttpRequest.responseText, {
+					shade : 0
+				});
+				return false;
+			}
+		});
+	}
+
+	function resetDataSource() {
+		$("#datasource_form").resetForm();
+		setDriver();
+	}
+</script>
+</html>

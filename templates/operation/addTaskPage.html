@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>创建任务</title>
+    <#include "${rc.contextPath}/framework/importFile.html"/>
+</head>
+<style>
+    html, body {
+        height: 100%;
+    }
+
+    .panel {
+        margin-right: 9px !important;
+        margin-left: 5px !important;
+    }
+    .form-control {
+        padding: 0px 12px;
+    }
+    .input-group{
+        width:10%;
+        display: inline-block;
+        border-radius: 4px 0 0 4px;
+    }
+    .col-xs-9 .btn-green {
+        color: #fff;
+        background-color: #0B9284;
+        border: 0rem;
+        margin-left: -5px;
+        vertical-align: top;
+        border-radius: 0 4px 4px 0;
+    }
+</style>
+<body>
+<div class="container-fluid" style="height: 100%;padding: 5px 5px 15px 5px;">
+    <div class="row" style="height: 50%;padding-bottom: 7.5px;">
+        <div class="col-md-12" style="height: 100%;">
+            <div class="panel panel-default"
+                 style="box-shadow: 0 2px 4px rgba(0, 0, 0, .2);border-radius: 10px;height: 100%;">
+                <div class="panel-heading">
+                    设置转换
+                </div>
+                <div class="panel-body">
+                    <div class=" btn-toolbar toolbar" role="toolbar" style="float:left;width: 80%;">
+                        <span id="add_btn" class="btn btn-green btn-sm glyphicon glyphicon-plus "> 新增</span>
+                        <span id="save_btn" class="btn btn-green btn-sm glyphicon glyphicon-floppy-disk "> 保存</span>
+                        <!--<span id="run_btn" class="btn btn-green btn-sm glyphicon glyphicon-play "> 运行</span>-->
+                        <span id="scheduled_btn" class="btn btn-green btn-sm glyphicon glyphicon-time "> 定时</span>
+                        <label class="col-xs-1 control-label">任务名</label>
+                        <div class="col-xs-1">
+                            <input class="form-control" type="text" id="task_name" name="task_name"
+                                   autocomplete="off">
+                        </div>
+                        <label class="col-xs-1 control-label">抽取模式</label>
+                        <div class="col-xs-1">
+                            <select class="form-control" id="task_type" name="task_type">
+                                <option value="">-请选择-</option>
+                                <option value="1">快速</option>
+                                <option value="0" >普通</option>
+                            </select>
+                        </div>
+                    </div>
+                    <table class="table table-striped table-tips table-tips-green" id="task_table">
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row" style="height: 50%;padding-top: 7.5px;">
+        <div class="col-md-12" style="height: 100%;">
+            <div class="panel panel-default"
+                 style="box-shadow: 0 2px 4px rgba(0, 0, 0, .2);border-radius: 10px;height: 100%;">
+                <div class="panel-heading">
+                    设置数据元参数
+                    <div id="toolbar" class="btn-group pull-right">
+                        <span id="addRow" class="btn btn-green btn-sm glyphicon glyphicon-plus "
+                              style="margin-right: 15px;margin-top: 5px;"></span>
+                    </div>
+                </div>
+                <div class="panel-body">
+
+                    <table class="table table-striped table-tips table-tips-green" id="params_table">
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    task_id = 0;
+    checkData = new Array();
+    $(function () {
+        $("#task_type").val('0');
+        initTaskTable();
+        initParamsTable();
+        $('#refresh_btn').click(function () {
+            initTaskTable();
+        })
+        $('#add_btn').click(function () {
+            var index = layer.open({
+                type: 1,
+                title: '选择转换',
+                content: '',
+                area: ['1360px', '600px'],
+                success: function (layero, index) {
+                    $('.layui-layer-content').append('<div>' +
+                        '<div class=" btn-toolbar toolbar" role="toolbar" style="float:left;width: 80%;">' +
+                        '                                <span id="refresh_run_task" class="btn btn-green btn-sm glyphicon glyphicon-refresh " > 刷新</span>' +
+                        '<span id="checked_sql" class="btn btn-green btn-sm glyphicon glyphicon-ok " > 确认</span>' +
+                        '</div>' +
+                        '<table class="table table-striped table-tips table-tips-green" id="sql_table"></div>');
+                    checkData = new Array();
+                    refreshSqlTable();
+                    $('body').off('click', "#refresh_run_task")
+                    $('body').on('click', "#refresh_run_task", function () {
+                        refreshSqlTable();
+                    })
+                    $('body').off('click', "#checked_sql")
+                    $('body').on('click', "#checked_sql", function () {
+                        checkedSqlTable();
+                    })
+                    $('body').on('click', '.search input', function () {
+                        var row = $.map($('#sql_table').bootstrapTable('getSelections'), function (row) {
+                            return row;
+                        });
+                        checkData = MergeArray(checkData, row);
+                    });
+                }
+            })
+        })
+        $('#history_btn').click(function () {
+            var id = 'historyTask';
+            parent.$.addtabs.add({
+                'id': id,
+                'title': '任务列表',
+                'url': compileUrl('${rc.contextPath}/ETLTask/historyTaskPage'),
+                'refresh': true
+            });
+            parent.setTabs(id);
+        })
+        /*$('#run_btn').click(function () {
+            if(task_id!=0) {
+                layer.confirm('该任务已保存，是否直接运行它？如要运行请选择要执行的抽取引擎并设置批量抽取条数：<input class="form-control" style="width: 100px;display: inline-block;" type="number" id="batch_size" name="batch_size" autocomplete="off" value="10000">', {btn: ['引擎一', '引擎二', '取消'], title: "提示"}, function () {
+                    var batch_size = $('#batch_size').val();
+                    layer.closeAll();
+                    runTask(task_id, 1,batch_size);
+                }, function () {
+                    var batch_size = $('#batch_size').val();
+                    layer.closeAll();
+                    runTask(task_id, 2,batch_size);
+                })
+            }else{
+                layer.confirm('该任务未保存，是否直接保存并运行它？', {btn: ['确认', '取消'], title: "提示"}, function () {
+                    layer.closeAll();
+                    runTaskAndRun()
+                })
+            }
+        })*/
+        $('#addRow').click(function () {
+            var index = $('#params_table').bootstrapTable('getData').length;
+            var id = genID(10);
+            $('#params_table').bootstrapTable('insertRow', {
+                index: index,
+                row: {
+                    id: id,
+                    param_key: '',
+                    param_value: ''
+                }
+            });
+        });
+        $('#save_btn').click(function () {
+            var index = layer.confirm('您是否要保存该任务？', {btn: ['确认', '取消'], title: "提示"}, function () {
+                saveTask();
+                layer.close(index);
+            })
+        })
+        $('#scheduled_btn').click(function () {
+            if ($('#task_table').bootstrapTable('getData').length == 0) {
+                layer.msg('请添加转换');
+                return;
+            }
+            var index = layer.confirm('您是否要将该任务另存为定时任务？', {btn: ['确认', '取消'], title: "提示"}, function () {
+                layer.close(index);
+                createScheduledTask();
+            })
+        })
+
+    })
+
+    function runTaskAndRun() {
+        var sql = $.map($('#task_table').bootstrapTable('getData'), function (row) {
+            return {
+                sql_id: row.id
+            };
+        });
+        if (sql.length == 0) {
+            layer.alert('请添加转换');
+            return;
+        }
+        var task_name = $('#task_name').val();
+        if (typeof task_name == 'undefined') {
+            if (sql.length == 1) {
+                task_name = '临时任务[' + sql[0].sql_id + ']';
+            } else {
+                task_name = '临时任务[' + sql[0].sql_id + '...]';
+            }
+        }
+        var params = $.map($('#params_table').bootstrapTable('getData'), function (row) {
+            return {
+                param_key: row.param_key,
+                param_value: row.param_value
+            };
+        });
+
+        var para = {
+            sql_id: sql,
+            params: params,
+            task_name: task_name
+        }
+        var url = compileUrl('${rc.contextPath}/ETLTask/createTask');
+        $.ajax({
+            url: url,
+            data: JSON.stringify(para),
+            dataType: "json",
+            type: "post",
+            contentType: 'application/json;charset=UTF-8;',
+            success: function (data) {
+                if (!data.success) {
+                    layer.alert(data.errorMsg);
+                    return false;
+                } else {
+
+                    layer.confirm('请选择要执行的抽取引擎：并设置批量抽取条数：<input class="form-control"  style="width: 100px;display: inline-block;" type="number" id="batch_size" name="batch_size" autocomplete="off" value="10000">', {btn: ['引擎一', '引擎二', '取消'], title: "提示"}, function () {
+                        var batch_size = $('#batch_size').val();
+                        runTask(data.data.task_id, 1,batch_size);
+                    }, function () {
+                        var batch_size = $('#batch_size').val();
+                        runTask(data.data.task_id, 2,batch_size);
+                    })
+                }
+            }
+        })
+    }
+
+    function createScheduledTask() {
+        var index = layer.open({
+            type: 1,
+            title: '请设置定时任务名（注：类名，必填项）',
+            content: '',
+            //maxmin: true,
+            //shade: 0,
+            area: ['650px', '200px'],
+            success: function (layero, index) {
+                $('.layui-layer-content').append('<form class="form-horizontal" id="scheduled_form"' +
+                    '              enctype="multipart/form-data">' +
+                    '<div class="form-group"><label class="col-xs-3 control-label required">类名：</label>' +
+                    '<div class="col-xs-9"><input class="form-control" style="width: 100px;"  type="text" id="task_class" name="task_class" autocomplete="off"></div></div>' +
+                    '<div class="form-group">\n' +
+                    '                <label class="col-xs-3 control-label required">任务表达式：</label>\n' +
+                    '                <div class="col-xs-9">\n' +
+                    '                    <input class="form-control" type="text" id="taskcron" name="taskcron"\n' +
+                    '                           autocomplete="off" style="display: none;">\n' +
+                    '                    <input class="form-control input-group" type="text" id="cron_second" name="cron_second"\n' +
+                    '                           autocomplete="off">\n' +
+                    '                    <span class="btn btn-green btn-sm" >秒</span>\n' +
+                    '                    <input class="form-control input-group" type="text" id="cron_minute" name="cron_minute"\n' +
+                    '                           autocomplete="off">\n' +
+                    '                    <span class="btn btn-green btn-sm" >分</span>\n' +
+                    '                    <input class="form-control input-group" type="text" id="cron_hour" name="cron_hour"\n' +
+                    '                           autocomplete="off">\n' +
+                    '                    <span class="btn btn-green btn-sm" >时</span>\n' +
+                    '                    <input class="form-control input-group" type="text" id="cron_day" name="cron_day"\n' +
+                    '                           autocomplete="off">\n' +
+                    '                    <span class="btn btn-green btn-sm" >日</span>\n' +
+                    '                    <input class="form-control input-group" type="text" id="cron_month" name="cron_month"\n' +
+                    '                           autocomplete="off">\n' +
+                    '                    <span class="btn btn-green btn-sm" >月</span><br/>\n' +
+                    '                    <label class="control-label">任务表达式预览：<span id="taskcron_text"></span></label>\n' +
+                    '                </div>\n' +
+                    '            </div>' +
+                    '<div class="form-group" style="text-align: center"><span id="save_scheduled" class="btn btn-green btn-sm glyphicon glyphicon-floppy-disk "> 保存</span></div>' +
+                    '</form>');
+                $('body').off('change','#cron_second,#cron_minute,#cron_hour,#cron_day,#cron_month');
+                $('body').on('change','#cron_second,#cron_minute,#cron_hour,#cron_day,#cron_month',function () {
+                    var cron_second = $('#cron_second').val() == '' ? '*' : $('#cron_second').val(),
+                        cron_minute = $('#cron_minute').val() == '' ? '*' : $('#cron_minute').val(),
+                        cron_hour = $('#cron_hour').val() == '' ? '*' : $('#cron_hour').val(),
+                        cron_day = $('#cron_day').val() == '' ? '*' : $('#cron_day').val(),
+                        cron_month = $('#cron_month').val() == '' ? '*' : $('#cron_month').val();
+                    var taskcron = cron_second + " " + cron_minute + " " + cron_hour + " " + cron_day + " " + cron_month + " ?";
+                    $('#taskcron').val(taskcron);
+                    $('#taskcron_text').text(taskcron);
+                })
+                $('body').off("click","#save_scheduled");
+                $('body').on("click","#save_scheduled",function () {
+                    var sql = $.map($('#task_table').bootstrapTable('getData'), function (row) {
+                        return {
+                            sql_id: row.id
+                        };
+                    });
+                    if (sql.length == 0) {
+                        layer.msg('请添加转换');
+                        return;
+                    }
+                    var task_name = $('#task_name').val();
+                    var task_type = $('#task_type').val();
+                    var task_class = $('#task_class').val();
+                    var cron = $('#taskcron').val();
+                    if (task_name == '') {
+                        if (sql.length == 1) {
+                            task_name = '定时任务[' + sql[0].sql_id + ']';
+                        } else {
+                            task_name = '定时任务[' + sql[0].sql_id + '...]';
+                        }
+                    }
+                    var params = $.map($('#params_table').bootstrapTable('getData'), function (row) {
+                        return {
+                            param_key: row.param_key,
+                            param_value: row.param_value
+                        };
+                    });
+                    var para = {
+                        sql_id: sql,
+                        params: params,
+                        task_class: task_class,
+                        task_name: task_name,
+                        task_type:task_type,
+                        cron:cron
+                    }
+                    var url = compileUrl('${rc.contextPath}/ETLTask/createScheduledTask');
+                    $.ajax({
+                        url: url,
+                        data: JSON.stringify(para),
+                        dataType: "json",
+                        type: "post",
+                        contentType: 'application/json;charset=UTF-8;',
+                        success: function (data) {
+                            if (!data.success) {
+                                layer.alert(data.errorMsg);
+                                return false;
+                            } else {
+                                layer.msg('定时任务创建成功，请到定时任务界面配置任务表达式');
+                                layer.close(index);
+                            }
+                        }
+                    })
+                })
+            }
+        })
+
+        /*layer.prompt({
+            formType: 2,
+            title: '请设置定时任务名（注：类名，必填项）',
+            area: ['500px', '150px'],
+            btnAlign: 'c',
+            yes: function (index, layero) {
+                // 获取文本框输入的值
+                var value = layero.find(".layui-layer-input").val();
+                if (value) {
+
+                } else {
+                    alert("输入值为空！");
+                }
+            }
+        });*/
+    }
+
+    function saveTask() {
+        var sql = $.map($('#task_table').bootstrapTable('getData'), function (row) {
+            return {
+                sql_id: row.id
+            };
+        });
+        if (sql.length == 0) {
+            layer.alert('请添加转换');
+            return;
+        }
+        var task_name = $('#task_name').val();
+        if (task_name == '') {
+            if (sql.length == 1) {
+                task_name = '临时任务[' + sql[0].sql_id + ']';
+            } else {
+                task_name = '临时任务[' + sql[0].sql_id + '...]';
+            }
+        }
+        var params = $.map($('#params_table').bootstrapTable('getData'), function (row) {
+            return {
+                param_key: row.param_key,
+                param_value: row.param_value
+            };
+        });
+
+        var para = {
+            sql_id: sql,
+            params: params,
+            task_name: task_name
+        }
+        var url = compileUrl('${rc.contextPath}/ETLTask/createTask');
+        $.ajax({
+            url: url,
+            data: JSON.stringify(para),
+            dataType: "json",
+            type: "post",
+            contentType: 'application/json;charset=UTF-8;',
+            success: function (data) {
+                if (!data.success) {
+                    layer.alert(data.errorMsg);
+                    return false;
+                } else {
+                    task_id = data.data.task_id;
+                    layer.msg('保存成功');
+                }
+            }
+        })
+    }
+
+    function genID(length) {
+        if ($.trim(length) == '') {
+            return Number(Math.random().toString().substr(2) + Date.now()).toString(36);
+        } else {
+            return Number(Math.random().toString().substr(2, length) + Date.now()).toString(36);
+        }
+    }
+
+    function checkedSqlTable() {
+        var row = $.map($('#sql_table').bootstrapTable('getSelections'), function (row) {
+            return row;
+        });
+        var row_id = $.map($('#sql_table').bootstrapTable('getSelections'), function (row) {
+            return row.id;
+        });
+        var task_row_id = $.map($('#task_table').bootstrapTable('getData'), function (row) {
+            return row.id;
+        });
+        checkData = MergeArray(checkData, row);
+        var param_keys = new Array();
+        for (var i in checkData) {
+            if (task_row_id.indexOf(row_id[i]) > -1) {
+                continue;
+            }
+            var index = $('#task_table').bootstrapTable('getData').length;
+            $('#task_table').bootstrapTable('insertRow', {
+                index: index,
+                row: checkData[i]
+            });
+            var item = checkData[i].select_sql.match(/:(.*?),/g);
+            if (item == null) {
+                item = checkData[i].select_sql.match(/:.*?$/g);
+            }
+            for (var j in item) {
+                if (param_keys.indexOf(item[j].replace(':', '').replace(' ', '').replace(',', '')) == -1) {
+                    param_keys.push(item[j].replace(':', '').replace(' ', '').replace(',', ''));
+                }
+            }
+        }
+        layer.closeAll();
+        var params_row_param_key = $.map($('#params_table').bootstrapTable('getData'), function (row) {
+            return row.param_key;
+        });
+        for (var i in param_keys) {
+            if (params_row_param_key.indexOf(param_keys[i]) > -1) {
+                continue;
+            }
+            var pindex = $('#params_table').bootstrapTable('getData').length;
+            $('#params_table').bootstrapTable('insertRow', {
+                index: pindex,
+                row: {
+                    param_key: param_keys[i],
+                    param_value: ""
+                }
+            });
+        }
+    }
+
+    function refreshSqlTable() {
+        var url = compileUrl('${rc.contextPath}/ETLTask/selectSql')
+        var para = {};
+        $('#sql_table').bootstrapTable('destroy');
+        $('#sql_table').bootstrapTable({
+            url: url,
+            method: 'post',
+            contentType: 'application/x-www-form-urlencoded',
+            cache: false,
+            pagination: true,
+            sortable: true,
+            toolbar: '#sql_table .toolbar:first', //工具按钮用哪个容器
+            queryParams: para,
+            sidePagination: 'client',
+            pageNumber: 1,
+            pageSize: 10,
+            search: true,
+            minimumCountColumns: 2,
+            clickToSelect: true,
+            uniqueId: 'id',
+            height: 500,
+            responseHandler: function (res) {
+                return res.data;
+            },
+            columns: [{
+                checkbox: true
+            }, {
+                field: 'numberid',//可不加
+                title: '序号',//标题  可不加
+                formatter: function (value, row, index) {
+                    return index + 1;
+                },
+                width: 50
+            }, {
+                field: 'id',
+                title: 'id',
+                sortable: true
+            }, {
+                field: 'insert_table',
+                title: '目标表名称',
+                sortable: true
+            }, {
+                field: 'insert_user',
+                title: '目标用户',
+                sortable: true
+            }, {
+                field: 'insert_datasource',
+                title: '目标数据源',
+                sortable: true
+            }, {
+                field: 'insert_sql',
+                title: '插入SQL',
+                sortable: true
+            }, {
+                field: 'select_sql',
+                title: '查询SQL',
+                sortable: true
+            }, {
+                field: 'type',
+                title: '是否传参',
+                sortable: true
+            }, {
+                field: 'notes',
+                title: '备注',
+                sortable: true
+            }]
+        });
+    }
+
+    function initTaskTable() {
+        //var url = compileUrl('${rc.contextPath}/ETLTask/selectSql');
+        //var url = compileUrl('');
+        //var para = {};
+        var panel_height = $('#task_table').closest('.panel').height();
+        var panel_head = $('#task_table').closest('.panel').find('.panel-heading').height();
+        var panel_body = panel_height - panel_head;
+        var table_hight = panel_body - 10;
+        $('#task_table').bootstrapTable('destroy');
+        $('#task_table').bootstrapTable({
+            //url: url,
+            method: 'post',
+            contentType: 'application/x-www-form-urlencoded',
+            cache: false,
+            pagination: true,
+            sortable: true,
+            toolbar: '#task_table .toolbar:first', //工具按钮用哪个容器
+           // queryParams: para,
+            sidePagination: 'client',
+            pageNumber: 1,
+            pageSize: 10,
+            search: true,
+            minimumCountColumns: 2,
+            clickToSelect: true,
+            uniqueId: 'id',
+            height: table_hight,
+            responseHandler: function (res) {
+                return res.data;
+            },
+            columns: [{
+                field: 'numberid',//可不加
+                title: '序号',//标题  可不加
+                formatter: function (value, row, index) {
+                    return index + 1;
+                },
+                width: 50
+            }, {
+                field: 'id',
+                title: 'id',
+                sortable: true
+            }, {
+                field: 'insert_table',
+                title: '目标表名称',
+                sortable: true
+            }, {
+                field: 'insert_user',
+                title: '目标用户',
+                sortable: true
+            }, {
+                field: 'insert_datasource',
+                title: '目标数据源',
+                sortable: true
+            }, {
+                field: 'insert_sql',
+                title: '插入SQL',
+                sortable: true
+            }, {
+                field: 'select_sql',
+                title: '查询SQL',
+                sortable: true
+            }, {
+                field: 'type',
+                title: '是否传参',
+                sortable: true
+            }, {
+                field: 'notes',
+                title: '备注',
+                sortable: true
+            }, {
+                field: 'operate',
+                title: '操作',
+                formatter: function (value, row, index) {
+                    var id = row.id;
+                    return [
+                        '<a href="javascript:;" class="a-default" onclick="updateTask(\''
+                        + id + '\')" style="margin-right:5px;">编辑</a>' +
+                        '<a href="javascript:;" class="a-default" onclick="deleteTask(\''
+                        + id + '\')" style="margin-right:5px;">删除</a>'].join('');
+                }
+            }]
+        });
+    }
+
+    function deleteTask(id) {
+        $('#task_table').bootstrapTable('remove', {field: 'id', values: [parseInt(id)]});
+    }
+
+    function updateTask(id) {
+        var pid = 'updateDdpSql';
+        parent.$.addtabs.add({
+            'id': pid,
+            'title': '修改转换',
+            'url': compileUrl('${rc.contextPath}/ETLTask/updateDdpSqlPage?id=' + id),
+            'refresh': true
+        });
+        parent.setTabs(pid);
+    }
+
+    function runTask(id, way,batch_size) {
+        var task_id = id;
+        var index = layer.open({
+            type: 1,
+            title: '抽取进程查询',
+            content: '',
+            area: ['1360px', '600px'],
+            success: function (layero, index) {
+                $('.layui-layer-content').append('<div>' +
+                    '<div class=" btn-toolbar toolbar" role="toolbar" style="float:left;width: 80%;">' +
+                    '                                <span id="refresh_run_task" class="btn btn-green btn-sm glyphicon glyphicon-refresh " > 刷新</span>' +
+                    '</div>' +
+                    '<table class="table table-striped table-tips table-tips-green" id="run_task_table"></div>');
+                refreshRunTaskTable(task_id);
+                $('body').off('click', "#refresh_run_task")
+                $('body').on('click', "#refresh_run_task", function () {
+                    refreshRunTaskTable(task_id);
+                })
+                var runurl = compileUrl('${rc.contextPath}/ETLTask/runTask');
+                var runpara = {
+                    task_id: task_id,
+                    way: way,
+                    batch_size:batch_size
+                }
+                $.ajax({
+                    url: runurl,
+                    data: runpara,
+                    dataType: "json",
+                    type: "post",
+                    success: function (data) {
+                        if (!data.success) {
+                            layer.alert(data.errorMsg);
+                            return false;
+                        } else {
+                            layer.msg('抽取完成！');
+                        }
+                    }
+                })
+            }
+        })
+    }
+
+    function initParamsTable() {
+        var panel_height = $('#params_table').closest('.panel').height();
+        var panel_head = $('#params_table').closest('.panel').find('.panel-heading').height();
+        var panel_body = panel_height - panel_head;
+        var table_hight = panel_body - 30;
+        $('#params_table').bootstrapTable('destroy');
+        $('#params_table').bootstrapTable({
+            sortable: true,
+            toolbar: '#params_table .toolbar:first', //工具按钮用哪个容器
+            pageNumber: 1,
+            pageSize: 10,
+            search: false,
+            minimumCountColumns: 2,
+            clickToSelect: true,
+            uniqueId: 'id',
+            height: table_hight,
+            responseHandler: function (res) {
+                return res.data;
+            },
+            columns: [{
+                field: 'numberid',//可不加
+                title: '序号',//标题  可不加
+                formatter: function (value, row, index) {
+                    return index + 1;
+                },
+                width: 50
+            }, {
+                field: 'param_key',
+                title: '数据元名',
+                editable: {
+                    type: 'text',
+                    title: '数据元名',
+                    validate: function (v) {
+                        if (!v) return '数据元名不能为空'; //判空
+                    }
+                }
+            }, {
+                field: 'param_value',
+                title: '数据元值',
+                editable: {
+                    type: 'text',
+                    title: '数据元值（定时任务请填入Cron表达式）',
+                    validate: function (v) {
+                        if (!v) return '数据元值不能为空'; //判空
+                    }
+                }
+            },
+                {
+                    field: 'operate',
+                    title: '操作',
+                    align: 'center',
+                    formatter: operateFormatterRole
+                }]
+        });
+    }
+
+    function operateFormatterRole(value, row, index) {//赋予的参数
+        return [
+            '<a class="a-default" style="margin-right: 5px;" href="javascript:;" onclick="deleteCurrentRow(\'' + row.id + '\')">删除</a>'
+        ].join('');
+    }
+
+    function deleteCurrentRow(id) {
+        //根据Id字段删除对应的数据
+        $('#params_table').bootstrapTable('remove', {field: 'id', values: [id]});
+    }
+
+    function refreshRunTaskTable(id) {
+        var url = compileUrl('${rc.contextPath}/ETLTask/selectTaskItem')
+        if (typeof id == 'undefined') {
+            layer.alert('请指定task');
+            return;
+        }
+        var para = {
+            task_id: id
+        };
+        $('#run_task_table').bootstrapTable('destroy');
+        $('#run_task_table').bootstrapTable({
+            url: url,
+            method: 'post',
+            contentType: 'application/x-www-form-urlencoded',
+            cache: false,
+            pagination: true,
+            sortable: true,
+            toolbar: '#run_task_table .toolbar:first', //工具按钮用哪个容器
+            queryParams: para,
+            sidePagination: 'client',
+            pageNumber: 1,
+            pageSize: 10,
+            search: true,
+            singleSelect: true,
+            minimumCountColumns: 2,
+            clickToSelect: true,
+            uniqueId: 'id',
+            height: 500,
+            responseHandler: function (res) {
+                for(var i in res.data.data){
+                    res.data.data[i].progress = res.data.data[i].insert_count+'/'+res.data.data[i].select_count;
+                }
+                return res.data;
+            },
+            columns: [{
+                field: 'numberid',//可不加
+                title: '序号',//标题  可不加
+                formatter: function (value, row, index) {
+                    return index + 1;
+                },
+                width: 50
+            }, {
+                field: 'id',
+                title: '子任务ID',
+                sortable: true
+            }, {
+                field: 'sql_id',
+                title: 'SQLID',
+                sortable: true
+            }, {
+                field: 'insert_user',
+                title: '目标用户',
+                sortable: true
+            }, {
+                field: 'insert_table',
+                title: '目标表',
+                sortable: true
+            }, {
+                field: 'type',
+                title: '是否传参',
+                sortable: true
+            }, {
+                field: 'progress',
+                title: '抽取进度',
+                sortable: true
+            }, {
+                field: 'state',
+                title: '执行结果',
+                sortable: true
+            }, {
+                field: 'starttime',
+                title: '开始时间',
+                sortable: true
+            }, {
+                field: 'endtime',
+                title: '结束时间',
+                sortable: true
+            }, {
+                field: 'exception_info',
+                title: '异常信息',
+            }, {
+                field: 'notes',
+                title: '备注',
+                sortable: true
+            }]
+        });
+    }
+
+    function MergeArray(arr1, arr2) {
+        var _arr = new Array();
+        for (var i = 0; i < arr1.length; i++) {
+            _arr.push(arr1[i]);
+        }
+        for (var i = 0; i < arr2.length; i++) {
+            var flag = true;
+            for (var j = 0; j < arr1.length; j++) {
+                if (arr2[i] == arr1[j]) {
+                    flag = false;
+                    break;
+                }
+            }
+            if (flag) {
+                _arr.push(arr2[i]);
+            }
+        }
+        return _arr;
+    }
+</script>
+</body>
+</html>

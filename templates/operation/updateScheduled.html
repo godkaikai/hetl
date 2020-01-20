@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>修改定时任务</title>
+    <#include "${rc.contextPath}/framework/importFile.html"/>
+    <style>
+        .input-group{
+            width:10%;
+            display: inline-block;
+            border-radius: 4px 0 0 4px;
+        }
+        .col-xs-9 .btn-green {
+            color: #fff;
+            background-color: #0B9284;
+            border: 0rem;
+            margin-left: -5px;
+            vertical-align: top;
+            border-radius: 0 4px 4px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="panel panel-default" style="margin-bottom: 0px;-webkit-box-shadow: none;box-shadow: none;">
+    <div class="panel-body">
+        <form class="form-horizontal" id="scheduled_form"
+              enctype="multipart/form-data">
+            <div class="form-group">
+                <label class="col-xs-3 control-label required">任务编号</label>
+                <div class="col-xs-9">
+                    <input class="form-control" type="text" id="task_name" name="task_name"
+                           autocomplete="off" readonly="readonly">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-3 control-label required">任务描述</label>
+                <div class="col-xs-9">
+                    <input class="form-control" type="text" id="note" name="note"
+                           autocomplete="off">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-3 control-label required">任务表达式</label>
+                <div class="col-xs-9">
+                    <input class="form-control" type="text" id="cron" name="cron"
+                           autocomplete="off" style="display: none;">
+                    <input class="form-control input-group" type="text" id="cron_second" name="cron_second"
+                           autocomplete="off">
+                    <span class="btn btn-green btn-sm" >秒</span>
+                    <input class="form-control input-group" type="text" id="cron_minute" name="cron_minute"
+                           autocomplete="off">
+                    <span class="btn btn-green btn-sm" >分</span>
+                    <input class="form-control input-group" type="text" id="cron_hour" name="cron_hour"
+                           autocomplete="off">
+                    <span class="btn btn-green btn-sm" >时</span>
+                    <input class="form-control input-group" type="text" id="cron_day" name="cron_day"
+                           autocomplete="off">
+                    <span class="btn btn-green btn-sm" >日</span>
+                    <input class="form-control input-group" type="text" id="cron_month" name="cron_month"
+                           autocomplete="off">
+                    <span class="btn btn-green btn-sm" >月</span><br/>
+                    <label class="control-label">任务表达式：<span id="cron_text"></span>&nbsp;<a id="copy_btn" href="#"  data-clipboard-target="#cron_text">复制</a></label>
+                </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 0px;">
+                <div class="pull-right">
+                    <span class="btn btn-green btn-sm" onclick="saveScheduled()">保存</span>
+                    <span class="btn btn-green btn-sm" onclick="resetScheduled()">清空</span>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+<script src="${rc.contextPath}/static/js/clipboard.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var task_name = '${task_name!""}',
+            note = '${note!""}',
+            cron = '${cron!"* * * * * ?"}';
+
+        $('#task_name').val(task_name);
+        $('#note').val(note);
+        $('#cron').val(cron);
+        $('#cron_text').text(cron);
+        var cronarr = cron.split(" ");
+        $('#cron_second').val(cronarr[0]);
+        $('#cron_minute').val(cronarr[1]);
+        $('#cron_hour').val(cronarr[2]);
+        $('#cron_day').val(cronarr[3]);
+        $('#cron_month').val(cronarr[4]);
+        $('#cron_text').text(cron);
+       /* $('#cron_url').click(function () {
+            //window.open('${rc.contextPath}/scheduled/goGenerateCronPage');
+            var id = 'generateCronPage';
+            parent.parent.$.addtabs.add({
+                'id': id,
+                'title': '任务表达式编辑器',
+                'url': compileUrl('${rc.contextPath}/scheduled/goGenerateCronPage'),
+                'refresh': true
+            });
+            parent.parent.setTabs(id);
+        })*/
+        $('#cron_second,#cron_minute,#cron_hour,#cron_day,#cron_month').change(function () {
+            var cron_second = $('#cron_second').val() == '' ? '*' : $('#cron_second').val(),
+                cron_minute = $('#cron_minute').val() == '' ? '*' : $('#cron_minute').val(),
+                cron_hour = $('#cron_hour').val() == '' ? '*' : $('#cron_hour').val(),
+                cron_day = $('#cron_day').val() == '' ? '*' : $('#cron_day').val(),
+                cron_month = $('#cron_month').val() == '' ? '*' : $('#cron_month').val();
+            var cron = cron_second + " " + cron_minute + " " + cron_hour + " " + cron_day + " " + cron_month + " ?";
+            $('#cron').val(cron);
+            $('#cron_text').text(cron);
+        })
+        var clipboard = new ClipboardJS('#copy_btn');
+        clipboard.on('success', function(e) {
+            layer.msg('复制成功')
+            /*console.info('Action:', e.action);
+            console.info('Text:', e.text);
+            console.info('Trigger:', e.trigger);*/
+            e.clearSelection();
+        });
+        clipboard.on('error', function(e) {
+            layer.msg('请手动复制')
+            /*console.error('Action:', e.action);
+            console.error('Trigger:', e.trigger);*/
+        });
+    });
+
+    function saveScheduled() {
+        if ($('#cron').val() == "") {
+            layer.msg('任务表达式为空')
+            return false;
+        }
+        var url = compileUrl('${rc.contextPath}/scheduled/updateTask');
+        var para = {
+            task_name: $('#task_name').val(),
+            note: $('#note').val(),
+            cron: $('#cron').val(),
+            id : '${id!""}'
+        };
+        $.ajax({
+            url: url,
+            data: para,
+            dataType: "json",
+            type: "post",
+            success: function (data) {
+                if (!data.success) {
+                    parent.layer.alert(data.errorMsg);
+                    return false;
+                } else {
+                    parent.refreshScheduled();
+                    parent.layer.msg('修改成功');
+                    var index = parent.layer.getFrameIndex(window.name);
+                    parent.layer.close(index);
+                }
+            },
+            error: function (XMLHttpRequest) {
+                layer.alert(XMLHttpRequest.responseText, {
+                    shade: 0
+                });
+                return false;
+            }
+        });
+    }
+
+    function resetScheduled() {
+        $("#scheduled_form").resetForm();
+    }
+
+</script>
+</html>

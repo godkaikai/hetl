@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='layui/css/layui.css') }}">
+    <script src="{{ url_for('static', filename='layui/layui.js') }}"></script>
+    <style>
+        .layui-card-header.layuiadmin-card-header-auto {
+            padding-top: 15px;
+            padding-bottom: 0;
+            height: auto;
+        }
+
+        .layui-card {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .2);
+            border-radius: 10px;
+            margin: 4px;
+        }
+
+        .layui-table-tool .layui-input {
+            height: 30px;
+        }
+
+        .layui-table-tool .layui-form-item {
+            margin-bottom: 0;
+        }
+
+        .layui-btn-container {
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+<div class="layui-card">
+    <div class="layui-card-body">
+        <table class="layui-hide" id="datasource" lay-filter="datasource"></table>
+        <script type="text/html" id="toolbarDemo">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-sm layui-icon" lay-event="add">&#xe654; 新增</button>
+                <button class="layui-btn layui-btn-sm layui-icon" lay-event="muldelete">&#xe640; 批量删除</button>
+                <div class="layui-inline layui-form-item">
+                    <div class="layui-input-inline" style="width:100px;">
+                        <select id="columns" name="columns" lay-search lay-filter="columns" class="layui-input-sm">
+                            <option value="">选择字段</option>
+                        </select>
+                    </div>
+                    <div class="layui-input-inline" style="width:100px;">
+                        <input type="text" name="value" id="value" placeholder="请输入模糊值" autocomplete="off"
+                               class="layui-input layui-input-sm">
+                    </div>
+                    <div class="layui-input-inline" style="width: auto;">
+                        <button class="layui-btn layui-btn-sm layui-icon" lay-event="search"
+                                style="font-size: 16px;">&#xe615
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </script>
+        <script type="text/html" id="barDemo">
+            <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+            <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+        </script>
+    </div>
+</div>
+
+<script>
+    layui.config({base: 'plugins/tablePlug/'}).use(['jquery', 'table', 'tablePlug', 'form'], function () {
+        var $ = layui.$,
+            form = layui.form,
+            table = layui.table,
+            tablePlug = layui.tablePlug;
+
+        var columns = [[
+            {type: 'checkbox', fixed: 'left', align: 'center', rowspan: 2}
+            , {
+                field: 'id',
+                title: 'ID',
+                fixed: 'left',
+                width: 100,
+                unresize: true,
+                align: 'center',
+                sort: true,
+                rowspan: 2
+            }
+            , {
+                field: 'datasource_purpose',
+                title: '数据源',
+                align: 'center',
+                sort: true,
+                rowspan: 2,
+                templet: function (res) {
+                    if (res.datasource_purpose === 1) {
+                        return '<p style="color:#01AAED;">目标数据源</p>'
+                    } else {
+                        return '<p style="color:#009688;">源数据源</p>'
+                    }
+                }
+            }
+            , {field: 'datasource_name', title: '名称', align: 'center', sort: true, rowspan: 2}
+            , {
+                field: 'datasource_title',
+                title: '标题',
+                align: 'center',
+                sort: true,
+                rowspan: 2
+            }
+            , {field: 'datasource_type', title: '类型', align: 'center', sort: true, rowspan: 2}
+            , {align: 'center', title: '数据源链接', colspan: 4}
+            , {field: 'datasource_username', title: '用户名', align: 'center', rowspan: 2}
+            , {field: 'datasource_password', title: '密码', align: 'center', rowspan: 2}
+            , {
+                field: 'state', title: '状态', sort: true, align: 'center', rowspan: 2,
+                templet: function (res) {
+                    if (res.state === 1) {
+                        return '<p style="color:#009688;">正常</p>'
+                    } else {
+                        return '<p style="color:#FF5722;">禁用</p>'
+                    }
+                }
+            }
+            , {
+                fixed: 'right',
+                title: '操作',
+                width: 110,
+                align: 'center',
+                toolbar: '#barDemo',
+                unresize: true,
+                //fixed: 'right',
+                rowspan: 2
+            }
+        ], [
+            {field: 'datasource_driver', align: 'center', title: '驱动'}
+            , {field: 'datasource_ip', align: 'center', title: 'IP'}
+            , {field: 'datasource_port', align: 'center', title: 'port'}
+            , {field: 'datasource_dbname', align: 'center', title: 'dbname'}]];
+
+
+        table.render({
+            elem: '#datasource'
+            , url: "{{ url_for('main.selectdatasource') }}"
+            , method: 'post'
+            , toolbar: '#toolbarDemo' //开启头部工具栏，并为其绑定左侧模板
+            , defaultToolbar: [{
+                title: '刷新'
+                , layEvent: 'refresh'
+                , icon: 'layui-icon-refresh-3'
+            }
+                , 'filter', 'exports', 'print', {
+                    title: '提示'
+                    , layEvent: 'LAYTABLE_TIPS'
+                    , icon: 'layui-icon-tips'
+                }]
+            , title: '数据源表'
+            , loading: true
+            , autoSort: false
+            , colFilterRecord: true
+            , smartReloadModel: true
+            , cols: columns
+            , page: true
+            , done: function () {
+                $.each(columns, function (index, items) {
+                    $.each(items, function (index, item) {
+                        if (typeof item.field != "undefined") {
+                            $('#columns').append(new Option(item.title, item.field));// 下拉菜单里添加元素
+                        }
+                    })
+                });
+                form.render("select");
+            }
+        });
+        table.on('sort(datasource)', function (obj) {
+            table.config.sortfield = obj.field
+            table.config.order = obj.type
+            table.reload('datasource', {
+                initSort: obj
+                , where: {
+                    sortfield: obj.field
+                    , order: obj.type
+                    , searchfield: table.config.searchfield
+                    , value: table.config.value
+                }
+            })
+        })
+        //头工具栏事件
+        table.on('toolbar(datasource)', function (obj) {
+            var checkStatus = table.checkStatus(obj.config.id);
+            {#switch (obj.event) {
+                case 'getCheckData':
+                    var data = checkStatus.data;
+                    layer.alert(JSON.stringify(data));
+                    break;
+                case 'getCheckLength':
+                    var data = checkStatus.data;
+                    layer.msg('选中了：' + data.length + ' 个');
+                    break;
+                case 'isAll':
+                    layer.msg(checkStatus.isAll ? '全选' : '未全选');
+                    break;
+
+                //自定义头工具栏右侧图标 - 提示
+                case 'LAYTABLE_TIPS':
+                    layer.alert('这是工具栏右侧自定义的一个图标按钮');
+                    break;
+            }
+            var checkStatus = table.checkStatus(obj.config.id);#}
+            switch (obj.event) {
+                case 'add':
+                    var data = {
+                        id: 'adddatasource',
+                        title: '新增数据源',
+                        url: '/adddatasource',
+                    }
+                    parent.tabAdd(data);
+                    break;
+                case 'muldelete':
+                    var data = checkStatus.data,
+                    ids = $.map(data,function (item) {
+                        return item.id;
+                    }).join(",");
+                    layer.confirm('您确认删除这'+data.length+'条记录吗？', function (index) {
+                        layer.close(index);
+                        $.ajax({
+                            url: "{{ url_for('main.muldeletedatasource') }}",
+                            type: 'post',
+                            data: {ids: ids},
+                            contentType: "application/x-www-form-urlencoded;charset=UTF-8",
+                            dataType: 'json',
+                            success: function (res) {
+                                if (res.success) {
+                                    $(".layui-laypage-btn")[0].click();
+                                    layer.msg(res.msg);
+                                } else {
+                                    layer.msg(res.msg);
+                                }
+                            }
+                        });
+                    });
+                    break;
+                case 'refresh':
+                    $(".layui-laypage-btn")[0].click();
+                    break;
+                case 'search':
+                    table.config.searchfield = $('#columns').val()
+                    table.config.value = $('#value').val()
+                    table.reload('datasource', {
+                        where: {
+                            searchfield: $('#columns').val()
+                            , value: $('#value').val()
+                            , page: 1
+                            , limit: table.config.limit
+                            , sortfield: table.config.sortfield
+                            , order: table.config.order
+                        }
+                    })
+                    break;
+                case 'LAYTABLE_TIPS':
+                    layer.alert('这是工具栏右侧自定义的一个图标按钮');
+                    break;
+            }
+            ;
+        });
+
+        //监听行工具事件
+        table.on('tool(datasource)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'del') {
+                layer.confirm('您确认删除记录' + data.id + '吗？', function (index) {
+                    layer.close(index);
+                    $.ajax({
+                        url: "{{ url_for('main.deletedatasource') }}",
+                        type: 'post',
+                        data: {id: data.id},
+                        contentType: "application/x-www-form-urlencoded;charset=UTF-8",
+                        dataType: 'json',
+                        success: function (res) {
+                            if (res.success) {
+                                //obj.del();
+                                $(".layui-laypage-btn")[0].click();
+                                layer.msg(res.msg);
+                            } else {
+                                layer.msg(res.msg);
+                            }
+                        }
+                    });
+                });
+            } else if (obj.event === 'edit') {
+                var page = {
+                    id: 'updateatasource' + data.id,
+                    title: '修改数据源' + data.datasource_name,
+                    url: '/updatedatasource?id=' + data.id,
+                }
+                parent.tabAdd(page);
+            }
+        });
+    })
+</script>
+</body>
+</html>

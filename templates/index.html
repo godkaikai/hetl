@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>HETL数据引擎</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='image/hetl.png') }}" type="image/x-icon"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='layui/css/layui.css') }}">
+    <style type="text/css">
+        .admin-tab {
+            margin: 0;
+            background-color: #f2f2f2;
+        }
+
+        #adminTabContent {
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+        }
+
+        #adminTabContent > .layui-show {
+            height: 100%;
+        }
+
+        .layui-layout-admin .layui-header {
+            background-color: #0b9284;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .2);
+        }
+
+        .layui-layout-admin .layui-logo {
+            color: #fff;
+            left: 35px;
+            top: -8px;
+        }
+
+        .logo {
+            margin: 10px;
+            max-height: 80%;
+            margin-left: 40px;
+        }
+
+        .layui-tab-content {
+            background-color: #f2f2f2
+        }
+
+        .layui-layout-admin .layui-body {
+            bottom: 0;
+        }
+
+        .layui-body {
+            left: 0px;
+        }
+
+        .layui-tab-title {
+            margin: 0 10px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .2);
+        }
+    </style>
+</head>
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header">
+        <img class="logo" alt="HETL数据引擎" src="{{ url_for('static', filename='image/logo.png') }}">
+        <div class="layui-logo">HETL数据引擎</div>
+        <ul class="layui-nav layui-layout-left" lay-filter="test">
+            <li class="layui-nav-item">
+                <a class="admin-nav-item" href="javascript:;" data-tab-id="welcome" data-tab-title="首页"
+                   data-tab-url="/welcome">首页</a>
+            </li>
+            <li class="layui-nav-item">
+                <a class="admin-nav-item" href="javascript:;" data-tab-id="datasource" data-tab-title="数据源"
+                   data-tab-url="/datasource">数据源</a>
+            </li>
+            <li class="layui-nav-item">
+                <a class="" href="javascript:;">字典映射</a>
+                <dl class="layui-nav-child">
+                    <dd><a href="javascript:;" class="admin-nav-item" data-tab-id="CodeManage" data-tab-title="新增映射"
+                           data-tab-url="code/codeManage">新增映射</a></dd>
+                    <dd><a href="javascript:;" class="admin-nav-item" data-tab-id="ParaManage" data-tab-title="版本管理"
+                           data-tab-url="para/paraManage">版本管理</a></dd>
+                </dl>
+            </li>
+            <li class="layui-nav-item">
+                <a class="" href="javascript:;">字段匹配</a>
+                <dl class="layui-nav-child">
+                    <dd><a href="javascript:;" class="admin-nav-item" data-tab-id="CodeManage" data-tab-title="新增匹配"
+                           data-tab-url="code/codeManage">新增匹配</a></dd>
+                    <dd><a href="javascript:;" class="admin-nav-item" data-tab-id="ParaManage" data-tab-title="版本管理"
+                           data-tab-url="para/paraManage">版本管理</a></dd>
+                </dl>
+            </li>
+            <li class="layui-nav-item">
+                <a class="" href="javascript:;">数据转换</a>
+                <dl class="layui-nav-child">
+                    <dd><a href="javascript:;" class="admin-nav-item" data-tab-id="CodeManage" data-tab-title="新增转换"
+                           data-tab-url="code/codeManage">新增转换</a></dd>
+                    <dd><a href="javascript:;" class="admin-nav-item" data-tab-id="ParaManage" data-tab-title="转换管理"
+                           data-tab-url="para/paraManage">转换管理</a></dd>
+                </dl>
+            </li>
+            <li class="layui-nav-item">
+                <a class="" href="javascript:;">任务中心</a>
+                <dl class="layui-nav-child">
+                    <dd><a href="javascript:;" class="admin-nav-item" data-tab-id="CodeManage" data-tab-title="即时任务"
+                           data-tab-url="code/codeManage">即时任务</a></dd>
+                    <dd><a href="javascript:;" class="admin-nav-item" data-tab-id="ParaManage" data-tab-title="定时任务"
+                           data-tab-url="para/paraManage">定时任务</a></dd>
+                </dl>
+            </li>
+            <li class="layui-nav-item">
+                <a class="" href="javascript:;">日志查询</a>
+            </li>
+        </ul>
+        <ul class="layui-nav layui-layout-right">
+            <li class="layui-nav-item">
+                <a href="javascript:;">
+                    欢迎您，超级管理员
+                </a>
+                <dl class="layui-nav-child">
+                    <dd><a href="">基本资料</a></dd>
+                    <dd><a href="">系统设置</a></dd>
+                </dl>
+            </li>
+            <li class="layui-nav-item"><a href="javascript:;" id="logout">退出</a></li>
+        </ul>
+    </div>
+    <div class="layui-body" id="adminBody">
+        <div class="layui-tab layui-tab-brief admin-tab" lay-filter="adminTab" lay-allowclose="true">
+            <ul class="layui-tab-title" id="adminTabTitle">
+            </ul>
+            <div class="layui-tab-content" id="adminTabContent">
+            </div>
+        </div>
+    </div>
+</div>
+<script src="{{ url_for('static', filename='layui/layui.js') }}"></script>
+<script src="{{ url_for('static', filename='js/jquery-1.11.3.min.js') }}"></script>
+<script>
+    layui.use(['jquery', 'element','layer'], function () {
+        var $ = layui.$,
+            element = layui.element,
+            layer = layui.layer,
+            active = {
+                adjustTabContent: function () {
+                    var bodyHeight = $('#adminBody').height(),
+                        titleHeight = $('#adminTabTitle').outerHeight();
+                    $('#adminTabContent').css('height', bodyHeight - titleHeight);
+                }
+            };
+        active.adjustTabContent();
+        $(window).resize(function () {
+            active.adjustTabContent();
+        });
+
+        $('.admin-nav-item').on('click', function () {
+            var data = {
+                id: $(this).data('tab-id'),
+                title: $(this).data('tab-title'),
+                url: $(this).data('tab-url'),
+            }
+            tabAdd(data);
+        });
+        $('#logout').on('click', function () {
+            layer.confirm('您确定要退出？', function () {
+                window.location.href = "/logout";
+            })
+        })
+        $('a[data-tab-id="welcome"]').click();
+
+    });
+
+    function tabAdd(data) {
+        var element = layui.element,
+            id = data.id,
+            title = data.title,
+            url = data.url,
+            content = '<iframe frameborder="no" border="0" src="'
+                + url
+                + '" style="height: 100%; width: 100%;"></iframe>',
+            isOpened = false,
+            tabs = $('#adminTabTitle li[lay-id]');
+        if (tabs.length == 0) {
+            element.tabAdd('adminTab', {
+                title: title,
+                content: content,
+                id: id
+            })
+        } else {
+            $.each(tabs, function () {
+                if (id == $(this).attr('lay-id')) {
+                    isOpened = true;
+                }
+            });
+            if (!isOpened) {
+                element.tabAdd('adminTab', {
+                    title: title,
+                    content: content,
+                    id: id
+                });
+            }
+        }
+        element.tabChange('adminTab', id);
+    }
+</script>
+</body>
+</html>

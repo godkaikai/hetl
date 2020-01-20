@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>定时任务管理</title>
+<#include "${rc.contextPath}/framework/importFile.html"/>
+	<style>
+		html,body{
+			height: 100%;
+		}
+		.layui-layer-content {
+			position: relative;
+			padding: 0px 20px 0px 20px;
+		}
+		.input-group{
+			width:10%;
+			display: inline-block;
+			border-radius: 4px 0 0 4px;
+		}
+		.col-xs-5 .btn-green {
+			color: #fff;
+			background-color: #0B9284;
+			border: 0rem;
+			margin-left: -5px;
+			vertical-align: top;
+			border-radius: 0 4px 4px 0;
+		}
+	</style>
+</head>
+<body>
+	<div class="container-fluid" style="height: 100%;padding: 5px 5px 15px 5px;">
+		<div class="row" style="height: 100%;">
+			<div class="col-md-12" style="height: 100%;">
+				<div class="panel panel-default" style="box-shadow: 0 2px 4px rgba(0, 0, 0, .2);border-radius: 10px;height: 100%;margin-right: 5px;">
+					<div class="panel-heading">
+						定时任务列表
+						<!--<div class="heading-btn-group">
+							<span id="refresh_btn" class="btn btn-green btn-sm glyphicon glyphicon-refresh "> 刷新</span>
+							&lt;!&ndash;<span id="add_btn" class="btn btn-green btn-sm glyphicon glyphicon-plus "> 添加</span>&ndash;&gt;
+						</div>-->
+
+					</div>
+					<div class="panel-body">
+						<div class=" btn-toolbar toolbar" role="toolbar" style="float:left;width: 80%;">
+							<span id="all_btn" class="btn btn-green btn-sm glyphicon glyphicon-th "> 全部</span>
+							<span id="refresh_btn" class="btn btn-green btn-sm glyphicon glyphicon-refresh "> 刷新</span>
+							<label class="col-xs-1 control-label ">任务表达式</label>
+							<div class="col-xs-5">
+								<input class="form-control" type="text" id="cron" name="cron"
+									   autocomplete="off" style="display: none;">
+								<input class="form-control input-group" type="text" id="cron_second" name="cron_second"
+									   autocomplete="off">
+								<span class="btn btn-green btn-sm" >秒</span>
+								<input class="form-control input-group" type="text" id="cron_minute" name="cron_minute"
+									   autocomplete="off">
+								<span class="btn btn-green btn-sm" >分</span>
+								<input class="form-control input-group" type="text" id="cron_hour" name="cron_hour"
+									   autocomplete="off">
+								<span class="btn btn-green btn-sm" >时</span>
+								<input class="form-control input-group" type="text" id="cron_day" name="cron_day"
+									   autocomplete="off">
+								<span class="btn btn-green btn-sm" >日</span>
+								<input class="form-control input-group" type="text" id="cron_month" name="cron_month"
+									   autocomplete="off">
+								<span class="btn btn-green btn-sm" >月</span>
+								<label class="control-label">&emsp;预览：<span id="cron_text"></span>&nbsp;<a id="copy_btn" href="#"  data-clipboard-target="#cron_text">复制</a></label>
+							</div>
+						</div>
+						<table class="table table-striped table-tips table-tips-green"
+							   id="scheduled_table">
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+<script src="${rc.contextPath}/static/js/clipboard.min.js"></script>
+<script type="text/javascript">
+	$(document).ready(function() {
+        allScheduled();
+        $('#refresh_btn').click(function () {
+            refreshScheduled();
+        })
+		$('#all_btn').click(function () {
+            allScheduled();
+        })
+        $('#cron_second,#cron_minute,#cron_hour,#cron_day,#cron_month').change(function () {
+            var cron_second = $('#cron_second').val() == '' ? '*' : $('#cron_second').val(),
+                cron_minute = $('#cron_minute').val() == '' ? '*' : $('#cron_minute').val(),
+                cron_hour = $('#cron_hour').val() == '' ? '*' : $('#cron_hour').val(),
+                cron_day = $('#cron_day').val() == '' ? '*' : $('#cron_day').val(),
+                cron_month = $('#cron_month').val() == '' ? '*' : $('#cron_month').val();
+            var cron = cron_second + " " + cron_minute + " " + cron_hour + " " + cron_day + " " + cron_month + " ?";
+            $('#cron').val(cron);
+            $('#cron_text').text(cron);
+        })
+        var clipboard = new ClipboardJS('#copy_btn');
+        clipboard.on('success', function(e) {
+            layer.msg('复制成功')
+            /*console.info('Action:', e.action);
+            console.info('Text:', e.text);
+            console.info('Trigger:', e.trigger);*/
+            e.clearSelection();
+        });
+        clipboard.on('error', function(e) {
+            layer.msg('请手动复制')
+            /*console.error('Action:', e.action);
+            console.error('Trigger:', e.trigger);*/
+        });
+	});
+
+    function refreshScheduled() {
+        var url = compileUrl('${rc.contextPath}/scheduled/selectHSTask');
+        $('#scheduled_table').bootstrapTable('destroy');
+        var cron = $('#cron').val();
+        var para={
+			cron:cron
+		};
+        var oTable = new scheduledTable();
+        oTable.init(url,para);
+    }
+
+    function allScheduled() {
+        var url = compileUrl('${rc.contextPath}/scheduled/selectHSTaskAll');
+        $('#scheduled_table').bootstrapTable('destroy');
+        var para={};
+        var oTable = new scheduledTable();
+        oTable.init(url,para);
+    }
+
+    var scheduledTable = function() {
+        var oTemplate = new Object();
+        oTemplate.init = function(url,para) {
+            var panel_height = $('#scheduled_table').closest('.panel').height();
+            var panel_head = $('#scheduled_table').closest('.panel').find('.panel-heading').height();
+            var panel_body = panel_height - panel_head;
+            var table_hight = panel_body - 30;
+            $('#scheduled_table').bootstrapTable({
+                url : url,
+                method : 'post',
+                contentType : 'application/x-www-form-urlencoded',
+                cache : false,
+                pagination : true,
+                sortable : false,
+                queryParams : para,
+                sidePagination : 'client',
+                pageNumber : 1,
+                pageSize : 10,
+                pageList : [ 10, 25, 50, 100 ],
+                search: true,
+                minimumCountColumns : 2,
+                height : table_hight,
+                clickToSelect : true,
+                uniqueId : 'task_name',
+                responseHandler : function(res) {
+                    /*return {
+                        'total' : res.data.total,
+                        'rows' : res.data.rows
+                    }*/
+                    for (var i in res.data.data) {
+                        res.data.data[i].state=res.data.data[i].state==1?'已启动':'未启动';
+                    }
+                    return res.data.data;
+                },
+                onPostBody:function () {
+					$('#scheduled_table tbody tr').each(function () {
+						var text = $(this).find('td').eq(6).text();
+						if(text=='未启动'){
+						    $(this).find('td').eq(6).css('color','#d15b47');
+						}else {
+                            $(this).find('td').eq(6).css('color','#0b9284');
+						}
+                    })
+                },
+                columns : [{
+                    field: 'numberid',//可不加
+                    title: '序号',//标题  可不加
+                    formatter: function (value, row, index) {
+                        return index + 1;
+                    },
+                    width: 50
+                }, {
+                    field : 'task_id',
+                    title : '任务编号',
+                },{
+                    field : 'task_name',
+                    title : '任务实例名',
+                }, {
+                    field : 'note',
+                    title : '任务描述'
+                }, {
+                    field : 'cron',
+                    title : '任务表达式'
+                }, {
+                    field : 'next_time',
+                    title : '下次运行时间'
+                }, {
+                    field : 'state',
+                    title : '启动状态'
+                }, {
+                    field : 'operate',
+                    title : '操作',
+                    formatter : function(value, row, index){
+                        var taskid = row.task_name;
+                        var state = row.state;
+                        if(state=='已启动'){
+                            return [
+                                '<a href="javascript:;" class="a-default" onclick="editScheduled(\''
+                                + taskid + '\')" style="margin-right:5px;">编辑</a>',
+                                '<a href="javascript:;" class="a-default" onclick="stopScheduled(\''
+                                + taskid + '\')" style="margin-right:5px;">停止</a>'
+                            ].join('');
+						}else {
+                            return [
+                                '<a href="javascript:;" class="a-default" onclick="editScheduled(\''
+                                + taskid + '\')" style="margin-right:5px;">编辑</a>',
+                                '<a href="javascript:;" class="a-default" onclick="startScheduled(\''
+                                + taskid + '\')" style="margin-right:5px;">启动</a>',
+                                '<a href="javascript:;" class="a-default" onclick="deleteScheduled(\''
+                                + taskid + '\')" style="margin-right:5px;">删除</a>'
+                            ].join('');
+                        }
+					}
+                } ]
+            });
+        };
+        return oTemplate;
+    };
+
+    // 编辑定时任务
+    function editScheduled(taskid) {
+        var url = compileUrl('${rc.contextPath}/scheduled/updateScheduledPage?task_name='
+            + taskid);
+        layer.open({
+            type : 2,
+            title : '编辑定时任务',
+            content : url,
+            area : [ '800px', '260px' ],
+            maxmin : true
+        });
+    }
+
+    // 启动定时任务
+    function startScheduled(taskid) {
+        var url = compileUrl('${rc.contextPath}/scheduled/start');
+        var data = {
+            taskKey: taskid
+        };
+
+        $.ajax({
+            type: 'post',
+            async: false,
+            url: url,
+            data: data,
+            dataType: 'json',
+            contentType: 'application/x-www-form-urlencoded;charset=UTF-8',
+            success: function (data) {
+                if (!data.success) {
+                    layer.alert(data.errorMsg, {
+                        shade: 0
+                    });
+                } else {
+                    if(data.data.state){
+                        layer.msg('启动成功');
+                        refreshScheduled();
+					}else{
+                        layer.msg('启动失败,请维护好定时任务后再启动！');
+					}
+                }
+            },
+            error: function (XMLHttpRequest) {
+                layer.alert(XMLHttpRequest.responseText, {
+                    shade: 0
+                });
+            }
+        });
+    }
+    // 停止定时任务
+    function stopScheduled(taskid) {
+        var url = compileUrl('${rc.contextPath}/scheduled/stop');
+        var data = {
+            taskKey: taskid
+        };
+
+        $.ajax({
+            type: 'post',
+            async: false,
+            url: url,
+            data: data,
+            dataType: 'json',
+            contentType: 'application/x-www-form-urlencoded;charset=UTF-8',
+            success: function (data) {
+                if (!data.success) {
+                    layer.alert(data.errorMsg, {
+                        shade: 0
+                    });
+                } else {
+                    layer.msg('停止成功');
+                    refreshScheduled();
+                }
+            },
+            error: function (XMLHttpRequest) {
+                layer.alert(XMLHttpRequest.responseText, {
+                    shade: 0
+                });
+            }
+        });
+    }
+	//删除定时任务
+    function deleteScheduled(taskid) {
+        layer.confirm('是否要删除该定时任务？', function () {
+            var url = compileUrl('${rc.contextPath}/scheduled/deleteTask');
+            var data = {
+                task_name: taskid
+            };
+
+            $.ajax({
+                type: 'post',
+                async: false,
+                url: url,
+                data: data,
+                dataType: 'json',
+                contentType: 'application/x-www-form-urlencoded;charset=UTF-8',
+                success: function (data) {
+                    if (!data.success) {
+                        layer.msg('删除失败');
+                    } else {
+                        layer.msg('删除成功');
+                        refreshScheduled();
+                    }
+                },
+                error: function (XMLHttpRequest) {
+                    layer.alert(XMLHttpRequest.responseText, {
+                        shade: 0
+                    });
+                }
+            });
+        });
+    }
+</script>
+</html>

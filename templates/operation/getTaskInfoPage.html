@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>子任务信息</title>
+    <#include "${rc.contextPath}/framework/importFile.html"/>
+</head>
+<style>
+    html, body {
+        height: 100%;
+    }
+
+    .panel {
+        margin-right: 9px !important;
+        margin-left: 5px !important;
+    }
+
+    .form-control-static {
+        line-height: 14px !important;
+    }
+    .form-control[disabled], fieldset[disabled] .form-control {
+        cursor: initial;
+    }
+</style>
+<body>
+<div class="container-fluid" style="height: 100%;padding: 5px 5px 15px 5px;">
+    <div class="row" style="height: 100%;padding-bottom: 7.5px;">
+        <div class="col-md-12" style="height: 100%;">
+            <div class="panel panel-default"
+                 style="box-shadow: 0 2px 4px rgba(0, 0, 0, .2);border-radius: 10px;height: 100%;">
+                <div class="panel-heading" id="title">
+
+                </div>
+                <div class="panel-body">
+                    <form class="form-horizontal" id="datasource_form"
+                          enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="task_id" class="col-xs-2 control-label">任务ID：</label>
+                            <div class="col-xs-1">
+                                <p class="form-control-static" id="task_id"></p>
+                            </div>
+                            <label for="sql_id" class="col-xs-1 control-label">转换ID：</label>
+                            <div class="col-xs-1">
+                                <p class="form-control-static" id="sql_id"></p>
+                            </div>
+                            <label for="type" class="col-xs-1 control-label">是否传参：</label>
+                            <div class="col-xs-1">
+                                <p class="form-control-static" id="type"></p>
+                            </div>
+                            <label for="state" class="col-xs-1 control-label">执行结果：</label>
+                            <div class="col-xs-1">
+                                <p class="form-control-static" id="state"></p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="source_info" class="col-xs-2 control-label">源数据源信息：</label>
+                            <div class="col-xs-3">
+                                <p class="form-control-static" id="source_info"></p>
+                            </div>
+                            <label for="target_info" class="col-xs-2 control-label">目标数据源信息：</label>
+                            <div class="col-xs-3">
+                                <p class="form-control-static" id="target_info"></p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="select_sql" class="col-xs-2 control-label">查询SQL：</label>
+                            <div class="col-xs-3">
+                                <textarea class="form-control" id="select_sql" name="select_sql" rows="10"
+                                          disabled></textarea>
+                            </div>
+                            <label for="insert_sql" class="col-xs-2 control-label">新增SQL：</label>
+                            <div class="col-xs-3">
+                                <textarea class="form-control" id="insert_sql" name="insert_sql" rows="10"
+                                          disabled></textarea>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="starttime" class="col-xs-2 control-label">开始时间：</label>
+                            <div class="col-xs-3">
+                                <p class="form-control-static" id="starttime"></p>
+                            </div>
+                            <label for="endtime" class="col-xs-2 control-label">结束时间：</label>
+                            <div class="col-xs-3">
+                                <p class="form-control-static" id="endtime"></p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="notes" class="col-xs-2 control-label">备注：</label>
+                            <div class="col-xs-8">
+                                <p class="form-control-static" id="notes"></p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="exception_info" class="col-xs-2 control-label">异常信息：</label>
+                            <div class="col-xs-8">
+                                <textarea class="form-control" id="exception_info" rows="3" disabled></textarea>
+                            </div>
+                        </div>
+                    </form>
+                    <div class="col-xs-2" style="text-align: right;"><label class=" control-label">参数信息</label></div>
+                    <div class="col-xs-4" style="padding: 0 20px;">
+                    <table id="params_table"
+                           class="table table-striped table-hover text-nowrap">
+                    </table>
+                    </div>
+                    <div class="col-xs-4">
+                        <div class="form-group">
+                            <label for="row_count" class="col-xs-4 control-label">ETL成功记录数：</label>
+                            <div class="col-xs-8">
+                                <p class="form-control-static" id="row_count"></p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="times" class="col-xs-4 control-label">总耗时：</label>
+                            <div class="col-xs-8">
+                                <p class="form-control-static" id="times"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(function () {
+        var id = "${id!''}";
+        $('#title').text('子任务' + id + '的运行信息');
+        initInfo(id);
+
+        $('#run_btn').click(function () {
+            runNewTask();
+        })
+    })
+
+    function runNewTask() {
+
+    }
+    function initInfo(id) {
+        var url = compileUrl('${rc.contextPath}/ETLTask/getTaskItemInfo');
+        var para = {
+            id: id
+        };
+        $.ajax({
+            url: url,
+            data: para,
+            dataType: "json",
+            type: "post",
+            success: function (data) {
+                if (!data.success) {
+                    layer.alert(data.errorMsg);
+                    return false;
+                } else {
+                    var info = data.data;
+                    $('#task_id').text(info.task_id);
+                    $('#sql_id').text(info.sql_id);
+                    $('#source_info').text(info.select_datasource);
+                    $('#target_info').text(info.insert_datasource==""?"master":info.insert_datasource);
+                    var type = info.type == 1 ? '是' : '否';
+                    $('#type').text(type);
+                    $('#notes').text(info.notes);
+                    $('#starttime').text(info.starttime);
+                    $('#endtime').text(info.endtime);
+                    $('#row_count').text(info.row_count);
+                    var state = info.state == 1 ? '成功' : '失败';
+                    $('#state').text(state);
+                    $('#select_sql').val(info.select_sql);
+                    $('#insert_sql').val(info.insert_sql);
+                    $('#exception_info').val(info.exception_info);
+                    var startDate = new Date(info.starttime);
+                    var endDate = new Date(info.endtime);
+                    var times = (endDate.getTime() - startDate.getTime())/1000;
+                    $('#times').text(times+'s');
+                    refreshParamsTable(info.sql_id);
+                }
+            },
+            error: function (XMLHttpRequest) {
+                layer.alert(XMLHttpRequest.responseText, {
+                    shade: 0
+                });
+                return false;
+            }
+        });
+    }
+
+    function refreshParamsTable(id) {
+        if (typeof id == 'undefined') {
+            layer.alert('请指定task');
+            return;
+        }
+        var url = compileUrl('${rc.contextPath}/ETLTask/selectParams');
+        var para = {
+            sql_id: id
+        };
+        var panel_height = $('#params_table').closest('.panel').height();
+        var panel_head = $('#params_table').closest('.panel').find('.panel-heading').height();
+        var form_height = $('#params_table').closest('.panel').find('form').height();
+        var panel_body = panel_height - form_height - panel_head;
+        var table_hight = panel_body - 25;
+        $('#params_table').bootstrapTable('destroy');
+        $('#params_table').bootstrapTable({
+            url: url,
+            method: 'post',
+            contentType: 'application/x-www-form-urlencoded',
+            cache: false,
+            pagination: true,
+            sortable: true,
+            toolbar: '#params_table .toolbar:first', //工具按钮用哪个容器
+            queryParams: para,
+            sidePagination: 'client',
+            pageNumber: 1,
+            pageSize: 10,
+            search: false,
+            singleSelect: true,
+            minimumCountColumns: 2,
+            clickToSelect: true,
+            uniqueId: 'id',
+            height: table_hight,
+            responseHandler: function (res) {
+                return res.data;
+            },
+            columns: [{
+                field: 'numberid',//可不加
+                title: '序号',//标题  可不加
+                formatter: function (value, row, index) {
+                    return index + 1;
+                },
+                width: 50
+            }, {
+                field: 'id',
+                title: 'id'
+            }, {
+                field: 'param_key',
+                title: '参数字段名'
+            }, {
+                field: 'param_value',
+                title: '参数值'
+            }]
+        });
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>字段匹配</title>
+    <#include "${rc.contextPath}/framework/importFile.html"/>
+</head>
+<style>
+    html,body{
+        height: 100%;
+    }
+    .panel{
+        margin-right: 9px!important;
+        margin-left: 5px!important;
+    }
+    .input-group{
+        border-radius: 4px 0 0 4px;
+    }
+    .label-group {
+        color: #fff;
+        background-color: #0B9284;
+        border: 0rem;
+        margin-left: -5px!important;
+        vertical-align: top;
+        border-radius: 0 4px 4px 0;
+        margin-right: 5px;
+    }
+    .select2-right-radius-zero .select2-container--default .select2-selection--single {
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 4px 0 0 4px;
+    }
+</style>
+<body>
+<div class="container-fluid" style="height: 100%;padding: 5px 5px 15px 5px;">
+    <div class="row" style="height: 50%;padding-bottom: 7.5px;">
+        <div class="col-md-12" style="height: 100%;">
+            <div class="panel panel-default" style="box-shadow: 0 2px 4px rgba(0, 0, 0, .2);border-radius: 10px;height: 100%;">
+                <div class="panel-heading">
+                    已匹配的表
+                </div>
+                <div class="panel-body">
+                    <div class=" btn-toolbar toolbar" role="toolbar" style="float:left;width: 80%;">
+                        <span id="all_btn" class="btn btn-green btn-sm glyphicon glyphicon-th "> 全部</span>
+                        <span id="add_btn" class="btn btn-green btn-sm glyphicon  glyphicon-cog "> 管理</span>
+                        <label for="target_datasource" class="control-label col-xs-1 ">目标数据源</label>
+                        <div class="col-xs-1 select2-right-radius-zero">
+                            <select id="target_datasource" name="target_datasource" class="js-example-templating js-states form-control  input-group">
+                                <option></option>
+                            </select>
+                        </div>
+                        <span class="btn btn-green btn-sm label-group">链接</span>
+                        <!--<label for="target_user" class="control-label col-xs-1 ">目标用户</label>-->
+                        <div class="col-xs-1 select2-right-radius-zero">
+                            <select id="target_user" name="target_user" class="js-example-templating js-states form-control  input-group">
+                                <option></option>
+                            </select>
+                        </div>
+                        <span class="btn btn-green btn-sm label-group">用户</span>
+                        <!--<label for="target_tables" class="control-label col-xs-1 ">目标数据表</label>-->
+                        <div class="col-xs-1 select2-right-radius-zero">
+                            <select id="target_tables" name="target_tables" class="js-example-templating js-states form-control  input-group">
+                                <option></option>
+                            </select>
+                        </div>
+                        <span class="btn btn-green btn-sm label-group">表/视图</span>
+                        <label for="target_match_version" class="control-label col-xs-1 ">映射版本</label>
+                        <div class="col-xs-1">
+                            <select id="target_match_version" name="target_match_version" class="js-example-templating js-states form-control">
+                                <option></option>
+                            </select>
+                        </div>
+                        <span id="refresh_btn" class="btn btn-green btn-sm glyphicon glyphicon-search "> 搜索</span>
+                    </div>
+                    <table class="table table-striped table-tips table-tips-green" id="table_table">
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row" style="height: 50%;padding-top: 7.5px;">
+        <div class="col-md-12" style="height: 100%;">
+            <div class="panel panel-default" style="box-shadow: 0 2px 4px rgba(0, 0, 0, .2);border-radius: 10px;height: 100%;">
+                <div class="panel-heading">
+                    表字段列表
+                </div>
+                <div class="panel-body">
+                    <table class="table table-striped table-tips table-tips-green" id="match_table">
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    sourceInfo={};
+    editInfo={};
+    $(function () {
+        initDataSourceSelect2();
+        refreshUserSelect2();
+        refreshTableSelect2();
+        initVersionSelect2();
+        refreshColumnMatchTable(0);
+        initMatchTable(0);
+        refreshSourceColumnsTable('source_columns_table', compileUrl(''), {});
+        $('#source_datasource_edit').change(function () {
+            var data=$(this).val().split(',');
+            sourceInfo.datasource=data[0];
+            sourceInfo.datasource_type=data[1];
+        })
+        $('#all_btn').click(function () {
+            initMatchTable(0);
+        })
+        $('#refresh_btn').click(function () {
+            initMatchTable();
+        })
+        $('#add_btn').click(function () {
+            var id = 'addColumnMatch';
+            parent.$.addtabs.add({
+                'id': id,
+                'title': '管理字段匹配',
+                'url': compileUrl('${rc.contextPath}/columnmatch/addColumnMatchPage'),
+                'refresh': true
+            });
+            parent.setTabs(id);
+        })
+    })
+    function initVersionSelect2() {
+        var url = compileUrl('${rc.contextPath}/columnmatch/getMatchVersion');
+        var para = {};
+        $.ajax({
+            url: url,
+            data: para,
+            dataType: "json",
+            type: "post",
+            success: function (data) {
+                if (!data.success) {
+                    layer.alert(data.errorMsg);
+                    return false;
+                } else {
+                    var row = $.map(data.data.data, function (row) {
+                        return {
+                            id: row.version,
+                            text: row.version
+                        };
+                    });
+                    $("#target_match_version").select2({
+                        placeholder: "-请选择-",
+                        allowClear: true,
+                        data: row
+                    });
+                }
+            }
+        })
+    }
+
+    function initMatchTable(type) {
+        var url = compileUrl('${rc.contextPath}/columnmatch/selectTableMatch');
+        var target_datasource = $("#target_datasource").val(),
+            target_user = $("#target_user").val(),
+            target_tables = $("#target_tables").val(),
+            version = $("#target_match_version").val();
+        var para = {
+            data_source: target_datasource,
+            user_name: target_user,
+            table_name: target_tables,
+            version: version,
+            type: 1
+        };
+        if(typeof type!='undefined'){
+            para = {
+                type: 1
+            };
+        }
+        var panel_height = $('#table_table').closest('.panel').height();
+        var panel_head = $('#table_table').closest('.panel').find('.panel-heading').height();
+        var panel_body = panel_height - panel_head;
+        var table_hight = panel_body - 5;
+        $('#table_table').bootstrapTable('destroy');
+        $('#table_table').bootstrapTable({
+            url : url,
+            method : 'post',
+            contentType : 'application/x-www-form-urlencoded',
+            cache : false,
+            pagination : true,
+            sortable : true,
+            toolbar: '#table_table .toolbar:first', //工具按钮用哪个容器
+            queryParams : para,
+            sidePagination : 'client',
+            pageNumber : 1,
+            pageSize : 10,
+            search: true,
+            singleSelect: true,
+            minimumCountColumns : 2,
+            clickToSelect : true,
+            uniqueId : 'id',
+            height: table_hight,
+            responseHandler : function(res) {
+                return res.data;
+            },
+            columns : [{
+                field: 'numberid',//可不加
+                title: '序号',//标题  可不加
+                formatter: function (value, row, index) {
+                    return index + 1;
+                },
+                width: 50
+            }, {
+                field : 'table_id',
+                title : 'id',
+                sortable: true
+            }, {
+                field : 'table_name',
+                title : '目标表名称',
+                sortable: true
+            }, {
+                field : 'data_source',
+                title : '目标数据源',
+                sortable: true
+            }, {
+                field : 'user_name',
+                title : '目标用户',
+                sortable: true
+            }, {
+                field : 'match_sign',
+                title : '是否匹配',
+                sortable: true
+            }, {
+                field : 'operate',
+                title : '操作',
+                formatter: function (value, row, index) {
+                    var id = row.table_id;
+                    return [
+                        '<a href="javascript:;" class="a-default" onclick="getMatch(\''
+                        + id + '\')" style="margin-right:5px;">查看</a>'+
+                        '<a href="javascript:;" class="a-default" onclick="createSelect(\''
+                        + id + '\')" style="margin-right:5px;">生成查询</a>'+
+                        '<a href="javascript:;" class="a-default" onclick="createInsert(\''
+                        + id + '\')" style="margin-right:5px;">生成插入</a>'+
+                        '<a href="javascript:;" class="a-default" onclick="createSql(\''
+                        + id + '\')" style="margin-right:5px;">创建转换</a>'].join('');
+                }
+            }]
+        });
+    }
+
+    function createSql(id) {
+        var pid = 'addDdpSql';
+        parent.$.addtabs.add({
+            'id': pid,
+            'title': '新增转换',
+            'url': compileUrl('${rc.contextPath}/ETLTask/addDdpSqlPageWithId?id='+id),
+            'refresh': true
+        });
+        parent.setTabs(pid);
+    }
+    function createInsert(id) {
+        if(typeof id=='undefined'){
+            layer.alert('请指定数据源、用户和表');
+            return;
+        }
+        var url = compileUrl('${rc.contextPath}/columnmatch/selectColumnMatchByTableId');
+        var para = {
+            table_id: id
+        };
+        $.ajax({
+            url : url,
+            data : para,
+            dataType : "json",
+            type : "post",
+            success : function(data) {
+                if (!data.success) {
+                    layer.alert(data.errorMsg);
+                    return false;
+                } else {
+                    var datas = data.data.data;
+                    if(datas.length==0){
+                        layer.alert('没有设置数据元信息');
+                        return;
+                    }
+                    var sql='insert into ';
+                    sql += datas[0].target_user_name + '.'+ datas[0].target_table_name + '( ';
+                    for(var i in datas){
+                        if(datas[i].target_column_name==null){
+                            continue;
+                        }
+                        if(i>0){
+                            sql += ',';
+                        }
+                        sql += datas[i].target_column_name;
+                    }
+                    sql += ' ) values ( ';
+                    for(var i in datas){
+                        if(datas[i].target_column_name==null){
+                            continue;
+                        }
+                        if(i>0){
+                            sql += ',';
+                        }
+                        sql += ':' + datas[i].target_column_name;
+                    }
+                    sql += ' )';
+                    var index = layer.open({
+                        type: 1,
+                        title: 'Sql插入语句简易生成',
+                        content: '',
+                        area: ['1360px', '600px'],
+                        success: function (layero, index) {
+                            $('.layui-layer-content').append('<div>' +
+                                '<textarea id="sql_text" class="form-control" rows="26" >');
+                            $('#sql_text').val(sql);
+                        }
+                    })
+                }
+            },
+            error : function(XMLHttpRequest) {
+                layer.alert(XMLHttpRequest.responseText, {
+                    shade : 0
+                });
+                return false;
+            }
+        });
+    }
+
+    function createSelect(id) {
+        if(typeof id=='undefined'){
+            layer.alert('请指定数据源、用户和表');
+            return;
+        }
+        var url = compileUrl('${rc.contextPath}/columnmatch/selectColumnMatchByTableId');
+        var para = {
+            table_id: id
+        };
+        $.ajax({
+            url : url,
+            data : para,
+            dataType : "json",
+            type : "post",
+            success : function(data) {
+                if (!data.success) {
+                    layer.alert(data.errorMsg);
+                    return false;
+                } else {
+                    var sql='select ';
+                    var datas = data.data.data;
+                    var tables = new Array();
+                    var users = new Array();
+                    for(var i in datas){
+                        if(i>0){
+                            sql += ',';
+                        }
+                        if(datas[i].source_column_name==null){
+                            if(datas[i].type==0){
+                                sql += 'null as ' + datas[i].target_column_name
+                            }else if(datas[i].type==2){
+                                sql += "'" + datas[i].value +"' as " + datas[i].target_column_name
+                            }
+
+                            continue;
+                        }
+                        sql += datas[i].source_table_name + '.' + datas[i].source_column_name + ' ' + datas[i].target_column_name;
+                        if ( tables.indexOf(datas[i].source_table_name)== -1||users.indexOf(datas[i].source_user_name)==-1) {
+                            tables.push(datas[i].source_table_name);
+                            users.push(datas[i].source_user_name);
+                        }
+                    }
+                    sql += ' from ';
+                    if(tables.length>0) {
+                        for (var i in tables) {
+                            if (i > 0) {
+                                sql += ',';
+                            }
+                            sql += users[i] + '.' + tables[i] + ' ' + tables[i];
+                        }
+                    }else{
+                        sql += 'dual';
+                    }
+                    var index = layer.open({
+                        type: 1,
+                        title: 'Sql查询语句简易生成（若连表查询需手动指定where条件）',
+                        content: '',
+                        area: ['1360px', '600px'],
+                        success: function (layero, index) {
+                            $('.layui-layer-content').append('<div>' +
+                                '<textarea id="sql_text" class="form-control" rows="26" >');
+                            $('#sql_text').val(sql);
+                        }
+                    })
+                }
+            },
+            error : function(XMLHttpRequest) {
+                layer.alert(XMLHttpRequest.responseText, {
+                    shade : 0
+                });
+                return false;
+            }
+        });
+    }
+
+    function getMatch(id) {
+        refreshColumnMatchTable(id);
+    }
+
+    function refreshColumnMatchTable(id) {
+        if(typeof id=='undefined'){
+            layer.alert('请指定数据源、用户和表');
+            return;
+        }
+        var para = {
+            table_id: id
+        };
+        var url = compileUrl('${rc.contextPath}/columnmatch/selectColumnMatchByTableId');
+        if(id==0){
+            url = null;
+        }
+        var panel_height = $('#match_table').closest('.panel').height();
+        var panel_head = $('#match_table').closest('.panel').find('.panel-heading').height();
+        var panel_body = panel_height - panel_head;
+        var table_hight = panel_body - 30;
+        $('#match_table').bootstrapTable('destroy');
+        $('#match_table').bootstrapTable({
+            url : url,
+            method : 'post',
+            contentType : 'application/x-www-form-urlencoded',
+            cache : false,
+            pagination : true,
+            sortable : true,
+            toolbar: '#match_table .toolbar:first', //工具按钮用哪个容器
+            queryParams : para,
+            sidePagination : 'client',
+            pageNumber : 1,
+            pageSize : 10,
+            search: true,
+            singleSelect: true,
+            minimumCountColumns : 2,
+            clickToSelect : true,
+            uniqueId : 'id',
+            height: table_hight,
+            responseHandler : function(res) {
+                return res.data;
+            },
+            columns : [{
+                field: 'numberid',//可不加
+                title: '序号',//标题  可不加
+                formatter: function (value, row, index) {
+                    return index + 1;
+                },
+                width: 50
+            }, {
+                field : 'id',
+                title : 'id'
+            }, {
+                field : 'target_column_name',
+                title : '目标字段名'
+            }, {
+                field : 'target_column_type',
+                title : '目标字段类型'
+            }, {
+                field : 'target_column_length',
+                title : '目标字段长度'
+            }, {
+                field : 'target_column_precision',
+                title : '目标字段精度'
+            }, {
+                field : 'target_column_notes',
+                title : '目标字段注释'
+            }, {
+                field : 'source_data_source',
+                title : '源字段数据源',
+                visible: false
+            }, {
+                field : 'source_user_name',
+                title : '源字段用户'
+            }, {
+                field : 'source_table_name',
+                title : '源字段表'
+            }, {
+                field : 'source_column_name',
+                title : '源字段名'
+            }, {
+                field : 'source_column_type',
+                title : '源字段类型'
+            }, {
+                field : 'source_column_length',
+                title : '源字段长度'
+            }, {
+                field : 'source_column_precision',
+                title : '源字段精度'
+            }, {
+                field : 'source_column_notes',
+                title : '源字段注释'
+            }, {
+                field : 'value',
+                title : '默认值'
+            }]
+        });
+    }
+
+    function refreshSourceColumnsTable(id,url,para) {
+        var panel_height = $('#'+id).closest('.panel').height();
+        var panel_head = $('#'+id).closest('.panel').find('.panel-heading').height();
+        var panel_body = panel_height - panel_head;
+        var table_hight = panel_body - 30;
+        $('#'+id).bootstrapTable('destroy');
+        $('#'+id).bootstrapTable({
+            url : url,
+            method : 'post',
+            contentType : 'application/x-www-form-urlencoded',
+            cache : false,
+            pagination : true,
+            sortable : true,
+            queryParams : para,
+            sidePagination : 'client',
+            pageNumber : 1,
+            pageSize : 10,
+            search: true,
+            minimumCountColumns : 2,
+            clickToSelect : true,
+            uniqueId : 'name',
+            height:table_hight,
+            responseHandler : function(res) {
+                return res.data.data;
+            },
+            columns : [ {
+                //field: 'Number',//可不加
+                title: '序号',//标题  可不加
+                formatter: function (value, row, index) {
+                    return index + 1;
+                },
+                width: 50
+            }, {
+                field : 'name',
+                title : '字段名',
+            }, {
+                field : 'type',
+                title : '字段类型'
+            }, {
+                field : 'length',
+                title : '字段长度'
+            }, {
+                field : 'precision',
+                title : '字段精度'
+            }, {
+                field : 'nullable',
+                title : '可否为空'
+            }, {
+
+                field : 'notes',
+                title : '字段注释'
+            }, {
+                field : 'operate',
+                title : '操作',
+                formatter : function (value, row, index) {
+                    var id = row.name;
+                    return [
+                        '<a href="javascript:;" class="a-default" onclick="refreshRangeTable(\''
+                        + id + '\')" style="margin-right:5px;">值域</a>',
+                        '<a href="javascript:;" class="a-default" onclick="addMatchColumn(this)" style="margin-right:5px;">匹配</a>' ].join('');
+                }
+            }]
+        });
+    }
+
+    function refreshTableSelect2() {
+        $("#target_user").on("change",function(){
+            var datasource = $("#target_datasource").val();
+            var user = $(this).val();
+            if(user==null||user==''){
+                $("#target_tables").select2('destroy').empty();
+                return;
+            }
+            var url = compileUrl('${rc.contextPath}/database/selectTables');
+            var para = {
+                datasource: datasource,
+                user: user
+            };
+            $.ajax({
+                url : url,
+                data : para,
+                dataType : "json",
+                type : "post",
+                success : function(data) {
+                    if (!data.success) {
+                        layer.alert(data.errorMsg);
+                        return false;
+                    } else {
+                        var table_list=[];
+                        for(var i=0;i<data.data.data.length;i++){
+                            table_list.push({ id: data.data.data[i], text: data.data.data[i] });
+                        }
+                        var $select =$("#target_tables");
+                        if($select.data('select2')){
+                            $select.select2('destroy').empty();
+                        }
+                        $("#target_tables").select2({
+                            placeholder: "-请选择-",
+                            allowClear: true,
+                            data: table_list
+                        });
+                    }
+                },
+                error : function(XMLHttpRequest) {
+                    layer.alert(XMLHttpRequest.responseText, {
+                        shade : 0
+                    });
+                    return false;
+                }
+            });
+        })
+    }
+    function refreshUserSelect2() {
+        $("#target_datasource").on("change",function(){
+            var datasource = $(this).val();
+            if(datasource==null||datasource==''){
+                $("#target_user").select2('destroy').empty();
+                $("#target_tables").select2('destroy').empty();
+                return;
+            }
+            var url = compileUrl('${rc.contextPath}/database/selectUser');
+            var para = { datasource:datasource };
+            $.ajax({
+                url : url,
+                data : para,
+                dataType : "json",
+                type : "post",
+                success : function(data) {
+                    if (!data.success) {
+                        layer.alert(data.errorMsg);
+                        return false;
+                    } else {
+                        var user_list=[];
+                        for(var i=0;i<data.data.data.length;i++){
+                            user_list.push({ id: data.data.data[i], text: data.data.data[i] });
+                        }
+                        var $select =$("#target_user");
+                        if($select.data('select2')){
+                            $select.select2('destroy').empty();
+                        }
+                        var $select2 =$("#target_table");
+                        if($select2.data('select2')){
+                            $select2.select2('destroy').empty();
+                        }
+                        $("#target_user").select2({
+                            placeholder: "-请选择-",
+                            allowClear: true,
+                            data: user_list
+                        });
+                    }
+                },
+                error : function(XMLHttpRequest) {
+                    layer.alert(XMLHttpRequest.responseText, {
+                        shade : 0
+                    });
+                    return false;
+                }
+            });
+        })
+    }
+    function initDataSourceSelect2() {
+        var url = compileUrl('${rc.contextPath}/hddp/index/refreshDataSource');
+        var para = {};
+        $.ajax({
+            url : url,
+            data : para,
+            dataType : "json",
+            type : "post",
+            success : function(data) {
+                if (!data.success) {
+                    layer.alert(data.errorMsg);
+                    return false;
+                } else {
+                    var source_list=[],target_list=[];
+                    for(var i=0;i<data.data.total;i++){
+                        if(data.data.rows[i].datasource_purpose=='0') {
+                            source_list.push({ id: data.data.rows[i].datasource_id+','+data.data.rows[i].datasource_type, text: data.data.rows[i].datasource_type +'.'+data.data.rows[i].datasource_id});
+                        }
+                        if(data.data.rows[i].datasource_purpose=='1') {
+                            target_list.push({ id: data.data.rows[i].datasource_id+','+data.data.rows[i].datasource_type, text: data.data.rows[i].datasource_type +'.'+data.data.rows[i].datasource_id});
+                        }
+                    }
+                    var $select =$("#target_datasource");
+                    if($select.data('select2')){
+                        $select.select2('destroy').empty();
+                    }
+                    $("#target_datasource").select2({
+                        placeholder: "-请选择-",
+                        allowClear: true,
+                        data: target_list
+                    });
+                    $select =$('[name="source_datasource"]');
+                    if($select.data('select2')){
+                        $select.select2('destroy').empty();
+                    }
+                    $('[name="source_datasource"]').select2({
+                        placeholder: "-请选择-",
+                        allowClear: true,
+                        data: source_list
+                    });
+                }
+            },
+            error : function(XMLHttpRequest) {
+                layer.alert(XMLHttpRequest.responseText, {
+                    shade : 0
+                });
+                return false;
+            }
+        });
+    }
+</script>
+</body>
+</html>
